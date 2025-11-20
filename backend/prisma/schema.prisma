@@ -1,0 +1,92 @@
+// LiLead CRM Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// User model for authentication and profile
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  leads         Lead[]
+  notes         Note[]
+  
+  @@map("users")
+}
+
+// Lead status enum
+enum LeadStatus {
+  NEW
+  IN_PROCESS
+  CLOSED
+  NOT_RELEVANT
+}
+
+// Lead source enum
+enum LeadSource {
+  FACEBOOK
+  INSTAGRAM
+  WHATSAPP
+  TIKTOK
+  MANUAL
+  WEBHOOK
+}
+
+// Lead model - main entity for CRM
+model Lead {
+  id            String      @id @default(cuid())
+  name          String
+  lastName      String?
+  phone         String
+  email         String?
+  status        LeadStatus  @default(NEW)
+  source        LeadSource  @default(MANUAL)
+  
+  // Custom fields (JSON for flexibility)
+  customFields  Json?
+  
+  // Timestamps
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  notes         Note[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([source])
+  @@index([createdAt])
+  @@map("leads")
+}
+
+// Note model for lead notes with timestamps
+model Note {
+  id            String      @id @default(cuid())
+  content       String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  
+  // Relations
+  leadId        String
+  lead          Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([leadId])
+  @@index([userId])
+  @@map("notes")
+}
