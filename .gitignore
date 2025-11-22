@@ -1,0 +1,36 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.log
+*.swp
+
+# Node.js / Backend
+node_modules/
+npm-debug.log
+yarn-error.log
+.env
+.next/
+dist/
+coverage/
+
+# Flutter / Mobile
+.dart_tool/
+.packages
+.pub/
+build/
+ios/Flutter/App.framework
+ios/Flutter/Flutter.framework
+ios/Flutter/Generated.xcconfig
+ios/Flutter/app.flx
+ios/Flutter/app.zip
+ios/Flutter/flutter_assets/
+ios/ServiceDefinitions.json
+ios/Runner/GeneratedPluginRegistrant.*
+android/local.properties
+*.jks
+*.keystore
+mobile/build/
+
+# Database
+postgres_data/

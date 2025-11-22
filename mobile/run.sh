@@ -16,9 +16,9 @@ if ! lsof -Pi :3000 -sTCP:LISTEN -t >/dev/null 2>&1; then
 fi
 
 echo "📱 Checking for connected devices..."
-if ! /home/talam1/develop/flutter/bin/flutter devices | grep -q "android"; then
+if ! flutter devices | grep -q "android"; then
     echo "🤖 No Android device found. Launching emulator..."
-    /home/talam1/develop/flutter/bin/flutter emulators --launch Medium_Phone_API_36.1
+    flutter emulators --launch Medium_Phone_API_36.1
     echo "Waiting for emulator to start..."
     sleep 10
 fi
@@ -31,5 +31,4 @@ echo "  R  - Hot restart"
 echo "  q  - Quit"
 echo ""
 
-cd /home/talam1/Desktop/Personal/lilead/mobile
-/home/talam1/develop/flutter/bin/flutter run
+flutter run
