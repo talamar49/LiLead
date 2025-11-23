@@ -47,21 +47,33 @@ class ActionLauncher {
   }
 
   // Launch Google Calendar
-  static Future<bool> launchGoogleCalendar({String? title, String? details}) async {
-    // Try to open Google Calendar app first, then fallback to web
-    final appUri = Uri.parse('content://com.android.calendar/time');
-    
-    // If app doesn't work, use web URL
-    final webUri = Uri.parse('https://calendar.google.com/calendar/r/eventedit');
-    
-    try {
-      if (await canLaunchUrl(appUri)) {
-        return await launchUrl(appUri, mode: LaunchMode.externalApplication);
-      }
-    } catch (e) {
-      // Fallback to web
+  static Future<bool> launchGoogleCalendar({
+    String? title,
+    String? details,
+    DateTime? startDateTime,
+    DateTime? endDateTime,
+    List<String>? emails,
+  }) async {
+    // Format dates for Google Calendar URL (YYYYMMDDTHHmmssZ)
+    String? dates;
+    if (startDateTime != null && endDateTime != null) {
+      final start = startDateTime.toUtc().toIso8601String().replaceAll('-', '').replaceAll(':', '').split('.').first + 'Z';
+      final end = endDateTime.toUtc().toIso8601String().replaceAll('-', '').replaceAll(':', '').split('.').first + 'Z';
+      dates = '$start/$end';
     }
+
+    // Build web URL with parameters
+    final queryParams = <String, String>{
+      'action': 'TEMPLATE',
+      if (title != null) 'text': title,
+      if (details != null) 'details': details,
+      if (dates != null) 'dates': dates,
+      if (emails != null && emails.isNotEmpty) 'add': emails.join(','),
+    };
+
+    final webUri = Uri.https('calendar.google.com', '/calendar/render', queryParams);
     
+    // Try to launch web URL directly as it's more reliable for pre-filling data
     if (await canLaunchUrl(webUri)) {
       return await launchUrl(webUri, mode: LaunchMode.externalApplication);
     }

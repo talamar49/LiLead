@@ -115,6 +115,117 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
     }
   }
 
+  Future<void> _showScheduleDialog(BuildContext context, AppLocalizations l10n) async {
+    final titleController = TextEditingController(text: 'פגישה עם ${_lead.name}');
+    final descriptionController = TextEditingController(text: 'טלפון: ${_lead.phone}');
+    DateTime selectedDateTime = DateTime.now().add(const Duration(hours: 1));
+    
+    return showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text('קבע אירוע'),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'כותרת',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descriptionController,
+                      decoration: InputDecoration(
+                        labelText: 'תיאור',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      maxLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    InkWell(
+                      onTap: () async {
+                        final date = await showDatePicker(
+                          context: context,
+                          initialDate: selectedDateTime,
+                          firstDate: DateTime.now(),
+                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                        );
+                        if (date != null) {
+                          final time = await showTimePicker(
+                            context: context,
+                            initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                          );
+                          if (time != null) {
+                            setState(() {
+                              selectedDateTime = DateTime(
+                                date.year,
+                                date.month,
+                                date.day,
+                                time.hour,
+                                time.minute,
+                              );
+                            });
+                          }
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today),
+                            const SizedBox(width: 12),
+                            Text(
+                              DateFormat('MMM d, yyyy HH:mm').format(selectedDateTime),
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text('ביטול'),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(dialogContext).pop();
+                    ActionLauncher.launchGoogleCalendar(
+                      title: titleController.text,
+                      details: descriptionController.text,
+                      startDateTime: selectedDateTime,
+                      endDateTime: selectedDateTime.add(const Duration(hours: 1)),
+                      emails: _lead.email != null ? [_lead.email!] : null,
+                    );
+                  },
+                  child: Text('קבע ביומן'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   DateTime? _getNextReminder(List<Note> notes) {
     if (notes.isEmpty) return null;
     
@@ -232,34 +343,18 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                         icon: Icons.email,
                         label: l10n.email,
                         onTap: () => _lead.email != null ? ActionLauncher.launchEmail(_lead.email!) : null,
-                        color: Colors.blue,
+                        color: const Color(0xFFEA4335), // Gmail red
+                        imageAsset: 'assets/images/gmail_logo.png',
+                      ),
+                      _ActionButton(
+                        icon: Icons.calendar_today,
+                        label: l10n.scheduleOnCalendar,
+                        onTap: () => _showScheduleDialog(context, l10n),
+                        color: const Color(0xFF4285F4), // Google Calendar blue
+                        imageAsset: 'assets/images/google_calendar_logo.png',
                       ),
                     ],
                   ).animate(delay: 300.ms)
-                    .fadeIn(duration: 400.ms)
-                    .slideY(begin: 0.2, duration: 400.ms),
-                  const SizedBox(height: 16),
-
-                  // Google Calendar Button
-                  Container(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () => ActionLauncher.launchGoogleCalendar(
-                        title: 'Meeting with ${_lead.name}',
-                        details: 'Phone: ${_lead.phone}',
-                      ),
-                      icon: const Icon(Icons.calendar_today, size: 20),
-                      label: Text(l10n.scheduleOnCalendar),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ).animate(delay: 400.ms)
                     .fadeIn(duration: 400.ms)
                     .slideY(begin: 0.2, duration: 400.ms),
                   const SizedBox(height: 24),
@@ -269,7 +364,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                   _DetailRow(icon: Icons.phone, value: _lead.phone),
                   if (_lead.email != null) _DetailRow(icon: Icons.email, value: _lead.email!),
                   if (_lead.company != null) _DetailRow(icon: Icons.business, value: _lead.company!),
-                  _DetailRow(icon: Icons.source, value: _lead.source.toString().split('.').last),
+                  _DetailRow(icon: Icons.source, value: _getLocalizedSourceLabel(_lead.source, l10n)),
                   if (_lead.value > 0) _DetailRow(icon: Icons.attach_money, value: _lead.value.toString()),
                   if (nextReminder != null) 
                     _DetailRow(
@@ -442,6 +537,17 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
     }
   }
 
+  String _getLocalizedSourceLabel(LeadSource source, AppLocalizations l10n) {
+    switch (source) {
+      case LeadSource.FACEBOOK: return l10n.sourceFacebook;
+      case LeadSource.INSTAGRAM: return l10n.sourceInstagram;
+      case LeadSource.WHATSAPP: return l10n.sourceWhatsApp;
+      case LeadSource.TIKTOK: return l10n.sourceTikTok;
+      case LeadSource.MANUAL: return l10n.sourceManual;
+      case LeadSource.WEBHOOK: return l10n.sourceWebhook;
+    }
+  }
+
   String _getInitials(String name) {
     if (name.isEmpty) return '';
     final parts = name.trim().split(' ');
@@ -490,15 +596,22 @@ class _ActionButton extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: imageAsset != null
-                  ? SvgPicture.asset(
-                      imageAsset!,
-                      width: 28,
-                      height: 28,
-                      fit: BoxFit.contain,
-                      semanticsLabel: label,
-                      colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                      placeholderBuilder: (context) => Icon(icon, color: color, size: 28),
-                    )
+                  ? (imageAsset!.endsWith('.svg')
+                      ? SvgPicture.asset(
+                          imageAsset!,
+                          width: 28,
+                          height: 28,
+                          fit: BoxFit.contain,
+                          semanticsLabel: label,
+                          colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                          placeholderBuilder: (context) => Icon(icon, color: color, size: 28),
+                        )
+                      : Image.asset(
+                          imageAsset!,
+                          width: 28,
+                          height: 28,
+                          fit: BoxFit.contain,
+                        ))
                   : Icon(icon, color: color, size: 28),
             ),
             const SizedBox(height: 4),

@@ -12,6 +12,7 @@ import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Force reload for translation updates
   
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
