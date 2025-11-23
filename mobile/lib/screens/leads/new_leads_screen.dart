@@ -111,7 +111,12 @@ class _NewLeadsScreenState extends ConsumerState<NewLeadsScreen> {
                                 final lead = leadsState.filteredLeads[index];
                                 return SlideInListItem(
                                   index: index,
-                                  child: LeadListItem(lead: lead),
+                                  child: LeadListItem(
+                                    lead: lead,
+                                    onReturn: () {
+                                      ref.read(leadProvider.notifier).getLeads(status: LeadStatus.NEW);
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -120,6 +125,8 @@ class _NewLeadsScreenState extends ConsumerState<NewLeadsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         onPressed: () {
           showModalBottomSheet(
             context: context,

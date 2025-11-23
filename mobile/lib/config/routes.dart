@@ -11,6 +11,7 @@ import '../screens/leads/new_leads_screen.dart';
 import '../screens/leads/follow_up_screen.dart';
 import '../screens/leads/closed_leads_screen.dart';
 import '../screens/leads/not_relevant_leads_screen.dart';
+import '../screens/leads/leads_list_screen.dart';
 import '../screens/leads/lead_detail_screen.dart';
 import '../screens/leads/add_lead_screen.dart';
 import '../screens/profile/profile_screen.dart';
@@ -67,6 +68,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/follow-up',
             builder: (context, state) => const FollowUpScreen(),
+          ),
+          GoRoute(
+            path: '/all-leads',
+            builder: (context, state) => const LeadsListScreen(),
           ),
           GoRoute(
             path: '/closed',

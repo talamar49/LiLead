@@ -53,7 +53,7 @@ class MainScreen extends ConsumerWidget {
                   children: [
                     _buildNavItem(
                       context,
-                      icon: CupertinoIcons.star_fill,
+                      icon: CupertinoIcons.flame_fill,
                       label: l10n.newLeads,
                       isSelected: currentIndex == 0,
                       onTap: () => context.go('/new-leads'),
@@ -113,13 +113,13 @@ class MainScreen extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: color),
+          Icon(icon, color: color, size: 28),
           const SizedBox(height: 4),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             ),
           ),

@@ -66,6 +66,19 @@ abstract class ApiService {
     @Body() Map<String, dynamic> body,
   );
 
+  @DELETE('/leads/{leadId}/notes/{noteId}')
+  Future<ApiResponse<void>> deleteNote(
+    @Path('leadId') String leadId,
+    @Path('noteId') String noteId,
+  );
+
+  @PATCH('/leads/{leadId}/notes/{noteId}')
+  Future<ApiResponse<Note>> updateNote(
+    @Path('leadId') String leadId,
+    @Path('noteId') String noteId,
+    @Body() Map<String, dynamic> body,
+  );
+
   // Profile
   @GET('/profile')
   Future<ApiResponse<User>> getProfile();
@@ -78,4 +91,7 @@ abstract class ApiService {
   // Statistics
   @GET('/stats')
   Future<ApiResponse<Statistics>> getStatistics();
+
+  // Note: Upload methods are not included here because retrofit doesn't handle
+  // MultipartFile properly. We'll use Dio directly for uploads in the service layer.
 }

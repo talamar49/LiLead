@@ -1,22 +1,25 @@
 import 'package:json_annotation/json_annotation.dart';
+import '../utils/date_time_converter.dart';
 
 part 'user.g.dart';
 
 @JsonSerializable()
 class User {
   final String id;
-  final String email;
+  final String? email;
   final String name;
   final String? avatarUrl;
-  final DateTime createdAt;
+  @NullableDateTimeConverter()
+  final DateTime? createdAt;
+  @NullableDateTimeConverter()
   final DateTime? updatedAt;
 
   User({
     required this.id,
-    required this.email,
+    this.email,
     required this.name,
     this.avatarUrl,
-    required this.createdAt,
+    this.createdAt,
     this.updatedAt,
   });
 

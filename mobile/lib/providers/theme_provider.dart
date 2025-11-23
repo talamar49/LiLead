@@ -11,18 +11,23 @@ final themeModeProvider = StateNotifierProvider<ThemeModeNotifier, ThemeMode>((r
 class ThemeModeNotifier extends StateNotifier<ThemeMode> {
   final dynamic _storageService;
 
-  ThemeModeNotifier(this._storageService) : super(ThemeMode.system) {
+  // Default to light theme (UI option temporarily disabled)
+  ThemeModeNotifier(this._storageService) : super(ThemeMode.light) {
     _loadThemeMode();
   }
 
   void _loadThemeMode() {
-    final savedMode = _storageService.getThemeMode();
-    if (savedMode != null) {
-      state = ThemeMode.values.firstWhere(
-        (mode) => mode.name == savedMode,
-        orElse: () => ThemeMode.system,
-      );
-    }
+    // Temporarily force light theme - UI option disabled
+    state = ThemeMode.light;
+    
+    // Original code kept for later re-enabling:
+    // final savedMode = _storageService.getThemeMode();
+    // if (savedMode != null) {
+    //   state = ThemeMode.values.firstWhere(
+    //     (mode) => mode.name == savedMode,
+    //     orElse: () => ThemeMode.light,
+    //   );
+    // }
   }
 
   Future<void> setThemeMode(ThemeMode mode) async {

@@ -3,12 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/lead_provider.dart';
 import '../../core/models/statistics.dart';
+import '../../core/models/lead.dart';
 import '../../widgets/dashboard_stats_card.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/lead_list_item.dart';
 import '../../config/theme.dart';
+import '../leads/add_lead_screen.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
@@ -23,6 +27,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(leadProvider.notifier).getStatistics();
+      ref.read(leadProvider.notifier).getLeads(); // Load all leads to show recent ones
     });
   }
 
@@ -89,6 +94,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   animatedValue: stats.total,
                                   icon: Icons.people,
                                   color: Colors.blue,
+                                  onTap: () => context.go('/all-leads'),
                                 ),
                                 DashboardStatsCard(
                                   title: l10n.conversionRate,
@@ -104,6 +110,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   animatedValue: stats.byStatus.newCount,
                                   icon: Icons.fiber_new,
                                   color: Colors.orange,
+                                  onTap: () => context.go('/new-leads'),
                                 ),
                                 DashboardStatsCard(
                                   title: l10n.wonLeads,
@@ -111,6 +118,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   animatedValue: stats.byStatus.closed,
                                   icon: Icons.check_circle,
                                   color: Colors.purple,
+                                  onTap: () => context.go('/closed'),
                                 ),
                               ],
                             ),
@@ -146,10 +154,10 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               runSpacing: 8,
                               alignment: WrapAlignment.center,
                               children: [
-                                _buildLegendItem('New', stats.byStatus.newCount, AppTheme.newLeadColor),
-                                _buildLegendItem('In Process', stats.byStatus.inProcess, AppTheme.inProcessColor),
-                                _buildLegendItem('Closed', stats.byStatus.closed, AppTheme.closedColor),
-                                _buildLegendItem('Not Relevant', stats.byStatus.notRelevant, AppTheme.notRelevantColor),
+                                _buildLegendItem(l10n.statusNew, stats.byStatus.newCount, AppTheme.newLeadColor),
+                                _buildLegendItem(l10n.statusInProcess, stats.byStatus.inProcess, AppTheme.inProcessColor),
+                                _buildLegendItem(l10n.statusClosed, stats.byStatus.closed, AppTheme.closedColor),
+                                _buildLegendItem(l10n.statusNotRelevant, stats.byStatus.notRelevant, AppTheme.notRelevantColor),
                               ],
                             ),
 
@@ -186,7 +194,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                       sideTitles: SideTitles(
                                         showTitles: true,
                                         getTitlesWidget: (value, meta) => _getTitles(value, meta, context),
-                                        reservedSize: 30,
+                                        reservedSize: 40,
                                       ),
                                     ),
                                     leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
@@ -202,10 +210,28 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 .fadeIn(duration: 1000.ms),
                             ),
                             const SizedBox(height: 32),
+                            
+                            // Recent Leads Section
+                            _buildRecentLeadsSection(context, l10n, ref),
+                            
+                            const SizedBox(height: 32),
                           ],
                         ),
                       ),
                     ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AddLeadScreen(),
+          );
+        },
+        child: const Icon(Icons.add),
+      ),
     );
   }
 
@@ -282,39 +308,65 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   }
 
   Widget _getTitles(double value, TitleMeta meta, BuildContext context) {
-    const style = TextStyle(
-      color: Colors.grey,
-      fontWeight: FontWeight.bold,
-      fontSize: 10,
-    );
-    Widget text;
+    Widget icon;
     switch (value.toInt()) {
       case 0:
-        text = const Text('FB', style: style);
+        // Facebook
+        icon = SvgPicture.asset(
+          'assets/images/facebook_logo.svg',
+          width: 24,
+          height: 24,
+        );
         break;
       case 1:
-        text = const Text('IG', style: style);
+        // Instagram
+        icon = SvgPicture.asset(
+          'assets/images/instagram_logo.svg',
+          width: 24,
+          height: 24,
+        );
         break;
       case 2:
-        text = const Text('WA', style: style);
+        // WhatsApp
+        icon = SvgPicture.asset(
+          'assets/images/whatsapp_logo.svg',
+          width: 24,
+          height: 24,
+          colorFilter: const ColorFilter.mode(Color(0xFF25D366), BlendMode.srcIn),
+        );
         break;
       case 3:
-        text = const Text('TT', style: style);
+        // TikTok
+        icon = SvgPicture.asset(
+          'assets/images/tiktok_logo.svg',
+          width: 24,
+          height: 24,
+        );
         break;
       case 4:
-        text = const Text('Man', style: style);
+        // Manual
+        icon = const Icon(
+          Icons.edit,
+          size: 24,
+          color: Colors.orange,
+        );
         break;
       case 5:
-        text = const Text('Web', style: style);
+        // Webhook
+        icon = const Icon(
+          Icons.webhook,
+          size: 24,
+          color: Colors.teal,
+        );
         break;
       default:
-        text = const Text('', style: style);
+        icon = const SizedBox.shrink();
         break;
     }
     return SideTitleWidget(
       axisSide: meta.axisSide,
-      space: 4,
-      child: text,
+      space: 8,
+      child: icon,
     );
   }
 
@@ -342,6 +394,75 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             topRight: Radius.circular(4),
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildRecentLeadsSection(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+    final leadState = ref.watch(leadProvider);
+    final recentLeads = leadState.leads.take(5).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              l10n.recentLeads ?? 'Recent Leads',
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            TextButton.icon(
+              onPressed: () => context.go('/all-leads'),
+              icon: const Icon(Icons.arrow_forward),
+              label: Text(l10n.viewAll ?? 'View All'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        if (recentLeads.isEmpty)
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(32.0),
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.inbox_outlined,
+                    size: 64,
+                    color: Colors.grey[400],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.noLeadsFound,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          ...recentLeads.asMap().entries.map((entry) {
+            final index = entry.key;
+            final lead = entry.value;
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8.0),
+              child: LeadListItem(
+                lead: lead,
+                showStatus: true,
+                onReturn: () {
+                  ref.read(leadProvider.notifier).getStatistics();
+                  ref.read(leadProvider.notifier).getLeads();
+                },
+              ).animate(delay: Duration(milliseconds: index * 100))
+                .fadeIn(duration: 500.ms)
+                .slideX(begin: -0.2, end: 0, duration: 500.ms, curve: Curves.easeOut),
+            );
+          }).toList(),
       ],
     );
   }

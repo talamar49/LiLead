@@ -191,6 +191,27 @@ Request:
 }
 ```
 
+## Upload
+
+### Upload Avatar
+**POST** `/upload/avatar`
+
+Content-Type: `multipart/form-data`
+
+Form Data:
+- `avatar` (File): Image file (JPEG, PNG, or WebP, max 5MB)
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "avatarUrl": "/uploads/avatars/avatar-clx...-1234567890.jpg"
+  },
+  "message": "Avatar uploaded successfully"
+}
+```
+
 ## Statistics
 
 ### Get Dashboard Stats
@@ -257,3 +278,67 @@ Common HTTP status codes:
 - `401` - Unauthorized (missing or invalid token)
 - `404` - Not Found
 - `500` - Internal Server Error
+
+## Notifications
+
+### Register Device Token
+**POST** `/notifications/register`
+
+Register a device token for push notifications.
+
+Request:
+```json
+{
+  "token": "fcm_device_token_here",
+  "platform": "android"  // or "ios" or "web"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "registered": true
+  },
+  "message": "Device token registered successfully"
+}
+```
+
+### Unregister Device Token
+**DELETE** `/notifications/register`
+
+Unregister a device token.
+
+Request:
+```json
+{
+  "token": "fcm_device_token_here"
+}
+```
+
+Response:
+```json
+{
+  "success": true,
+  "data": {
+    "unregistered": true
+  },
+  "message": "Device token unregistered successfully"
+}
+```
+
+---
+
+## Push Notifications
+
+The system automatically sends push notifications for:
+- **Note Reminders**: When a note's `reminderAt` time is reached, a notification is sent to all registered devices of the user
+- Notifications are checked and sent every minute by the backend scheduler
+- To receive notifications, ensure you:
+  1. Have registered a device token via `/notifications/register`
+  2. Have proper Firebase configuration set up
+  3. Have notification permissions enabled on your device
+
+For setup instructions, see `NOTIFICATIONS_SETUP.md`.
+

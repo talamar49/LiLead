@@ -9,7 +9,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
-    final themeMode = ref.watch(themeModeProvider);
+    // final themeMode = ref.watch(themeModeProvider); // Temporarily disabled
     final locale = ref.watch(localeProvider);
 
     return Scaffold(
@@ -18,13 +18,14 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: ListView(
         children: [
-          ListTile(
-            leading: const Icon(Icons.brightness_6),
-            title: Text(l10n.theme),
-            subtitle: Text(_getThemeModeLabel(context, themeMode)),
-            onTap: () => _showThemeDialog(context, ref, themeMode),
-          ),
-          const Divider(),
+          // Theme option temporarily disabled - keeping light theme as default
+          // ListTile(
+          //   leading: const Icon(Icons.brightness_6),
+          //   title: Text(l10n.theme),
+          //   subtitle: Text(_getThemeModeLabel(context, themeMode)),
+          //   onTap: () => _showThemeDialog(context, ref, themeMode),
+          // ),
+          // const Divider(),
           ListTile(
             leading: const Icon(Icons.language),
             title: Text(l10n.language),
@@ -114,6 +115,9 @@ class SettingsScreen extends ConsumerWidget {
 
   Widget _buildDialogOption(BuildContext context, String label, bool isSelected, VoidCallback onTap) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final selectedColor = isDark ? Colors.white : theme.primaryColor;
+    
     return SimpleDialogOption(
       onPressed: () {
         onTap();
@@ -125,12 +129,12 @@ class SettingsScreen extends ConsumerWidget {
           Text(
             label,
             style: TextStyle(
-              color: isSelected ? theme.primaryColor : null,
+              color: isSelected ? selectedColor : (isDark ? Colors.white70 : null),
               fontWeight: isSelected ? FontWeight.bold : null,
             ),
           ),
           if (isSelected)
-            Icon(Icons.check, color: theme.primaryColor),
+            Icon(Icons.check, color: selectedColor),
         ],
       ),
     );

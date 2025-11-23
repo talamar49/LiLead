@@ -79,11 +79,41 @@ class LeadService {
     }
   }
 
-  Future<Note> addNote(String leadId, String content) async {
+  Future<Note> addNote(String leadId, String content, {DateTime? reminderAt}) async {
     try {
-      final response = await _apiService.addNote(leadId, {'content': content});
+      final body = {
+        'content': content,
+        if (reminderAt != null) 'reminderAt': reminderAt.toIso8601String(),
+      };
+      final response = await _apiService.addNote(leadId, body);
       if (response.success && response.data != null) return response.data!;
       throw Exception(response.error ?? 'Failed to add note');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<Note> updateNote(String leadId, String noteId, {String? content, DateTime? reminderAt, bool? clearReminder}) async {
+    try {
+      final body = <String, dynamic>{};
+      if (content != null) body['content'] = content;
+      if (clearReminder == true) {
+        body['reminderAt'] = null;
+      } else if (reminderAt != null) {
+        body['reminderAt'] = reminderAt.toIso8601String();
+      }
+      
+      final response = await _apiService.updateNote(leadId, noteId, body);
+      if (response.success && response.data != null) return response.data!;
+      throw Exception(response.error ?? 'Failed to update note');
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  Future<void> deleteNote(String leadId, String noteId) async {
+    try {
+      await _apiService.deleteNote(leadId, noteId);
     } on DioException catch (e) {
       throw _handleError(e);
     }

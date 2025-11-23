@@ -18,7 +18,7 @@ fi
 echo "📱 Checking for connected devices..."
 if ! flutter devices | grep -q "android"; then
     echo "🤖 No Android device found. Launching emulator..."
-    flutter emulators --launch Medium_Phone_API_36.1
+    flutter emulators --launch Pixel_3a
     echo "Waiting for emulator to start..."
     sleep 10
 fi

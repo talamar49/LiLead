@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+// Note: Do NOT import server-init here - it causes Edge runtime issues
+// The scheduler is initialized separately in API routes
 
 export function middleware(request: NextRequest) {
     // Handle CORS for mobile app

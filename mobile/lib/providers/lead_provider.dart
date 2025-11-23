@@ -105,9 +105,29 @@ class LeadNotifier extends StateNotifier<LeadState> {
     }
   }
 
-  Future<bool> addNote(String leadId, String content) async {
+  Future<bool> addNote(String leadId, String content, {DateTime? reminderAt}) async {
     try {
-      await _leadService.addNote(leadId, content);
+      await _leadService.addNote(leadId, content, reminderAt: reminderAt);
+      await getNotes(leadId); // Refresh notes
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> updateNote(String leadId, String noteId, {String? content, DateTime? reminderAt, bool? clearReminder}) async {
+    try {
+      await _leadService.updateNote(leadId, noteId, content: content, reminderAt: reminderAt, clearReminder: clearReminder);
+      await getNotes(leadId); // Refresh notes
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> deleteNote(String leadId, String noteId) async {
+    try {
+      await _leadService.deleteNote(leadId, noteId);
       await getNotes(leadId); // Refresh notes
       return true;
     } catch (e) {

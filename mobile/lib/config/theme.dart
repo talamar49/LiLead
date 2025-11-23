@@ -105,7 +105,7 @@ class AppTheme {
     ),
   );
   
-  // Dark Theme
+  // Dark Theme (Much Lighter variant)
   static ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
@@ -113,10 +113,10 @@ class AppTheme {
       primary: primaryColor,
       secondary: secondaryColor,
       error: errorColor,
-      surface: const Color(0xFF1C1C1E),
+      surface: const Color(0xFF3A3A3C), // Much lighter surface
       onSurface: Colors.white,
     ),
-    scaffoldBackgroundColor: Colors.black,
+    scaffoldBackgroundColor: const Color(0xFF2C2C2E), // Much lighter background
     
     // Typography
     textTheme: GoogleFonts.interTextTheme(
@@ -133,10 +133,11 @@ class AppTheme {
     
     // AppBar
     appBarTheme: const AppBarTheme(
-      backgroundColor: Color(0xFF1C1C1E),
+      backgroundColor: Color(0xFF3A3A3C), // Much lighter background
       foregroundColor: Colors.white,
       elevation: 0,
       centerTitle: true,
+      iconTheme: IconThemeData(color: Colors.white), // Ensure icons are visible
       titleTextStyle: TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w600,
@@ -146,7 +147,7 @@ class AppTheme {
     
     // Card
     cardTheme: CardThemeData(
-      color: const Color(0xFF1C1C1E),
+      color: const Color(0xFF3A3A3C), // Much lighter card background
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
@@ -155,8 +156,9 @@ class AppTheme {
     
     // Bottom Navigation Bar
     bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-      selectedItemColor: primaryColor,
-      unselectedItemColor: Color(0xFF8E8E93),
+      backgroundColor: Color(0xFF3A3A3C), // Much lighter background for visibility
+      selectedItemColor: Colors.white, // White for maximum visibility
+      unselectedItemColor: Color(0xFFE0E0E0), // Near white for maximum visibility
       type: BottomNavigationBarType.fixed,
       elevation: 0,
     ),
@@ -164,7 +166,7 @@ class AppTheme {
     // Input Decoration
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: const Color(0xFF2C2C2E),
+      fillColor: const Color(0xFF48484A), // Much lighter fill for better visibility
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(10),
         borderSide: BorderSide.none,
@@ -190,6 +192,60 @@ class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
         ),
+      ),
+    ),
+    
+    // Floating Action Button
+    floatingActionButtonTheme: const FloatingActionButtonThemeData(
+      backgroundColor: primaryColor,
+      foregroundColor: Colors.white,
+      elevation: 4,
+    ),
+    
+    // Radio Button
+    radioTheme: RadioThemeData(
+      fillColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return primaryColor;
+        }
+        return Colors.grey;
+      }),
+    ),
+    
+    // Checkbox
+    checkboxTheme: CheckboxThemeData(
+      fillColor: MaterialStateProperty.resolveWith((states) {
+        if (states.contains(MaterialState.selected)) {
+          return primaryColor;
+        }
+        return Colors.grey;
+      }),
+    ),
+    
+    // List Tile
+    listTileTheme: const ListTileThemeData(
+      iconColor: Colors.white,
+      textColor: Colors.white,
+    ),
+    
+    // Text Selection
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: primaryColor,
+      selectionColor: primaryColor,
+      selectionHandleColor: primaryColor,
+    ),
+    
+    // Dialog
+    dialogTheme: const DialogThemeData(
+      backgroundColor: Color(0xFF3A3A3C),
+      titleTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 20,
+        fontWeight: FontWeight.bold,
+      ),
+      contentTextStyle: TextStyle(
+        color: Colors.white,
+        fontSize: 16,
       ),
     ),
   );

@@ -6,6 +6,7 @@ import { successResponse, errorResponse, unauthorizedResponse, notFoundResponse 
 
 const createNoteSchema = z.object({
     content: z.string().min(1, 'Note content is required'),
+    reminderAt: z.string().optional().nullable().or(z.literal(undefined)),
 })
 
 // POST /api/leads/[id]/notes - Add a note to a lead
@@ -22,8 +23,11 @@ export async function POST(
         const { id: leadId } = await params
         const body = await request.json()
 
+        console.log('Received note body:', body)
+
         const validation = createNoteSchema.safeParse(body)
         if (!validation.success) {
+            console.error('Validation error:', validation.error.errors)
             return errorResponse(validation.error.errors[0].message, 400)
         }
 
@@ -42,6 +46,7 @@ export async function POST(
         const note = await prisma.note.create({
             data: {
                 content: validation.data.content,
+                reminderAt: validation.data.reminderAt ? new Date(validation.data.reminderAt) : null,
                 leadId,
                 userId: user.id,
             },

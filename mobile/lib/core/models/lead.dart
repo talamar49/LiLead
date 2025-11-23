@@ -1,6 +1,7 @@
 
 import 'package:json_annotation/json_annotation.dart';
 import 'note.dart';
+import '../utils/date_time_converter.dart';
 
 part 'lead.g.dart';
 
@@ -42,7 +43,9 @@ class Lead {
   final LeadStatus status;
   final LeadSource source;
   final Map<String, dynamic>? customFields;
+  @DateTimeConverter()
   final DateTime createdAt;
+  @DateTimeConverter()
   final DateTime updatedAt;
   final String userId;
   final List<Note>? notes;

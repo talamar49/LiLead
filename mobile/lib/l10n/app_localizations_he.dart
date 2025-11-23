@@ -33,6 +33,12 @@ class AppLocalizationsHe extends AppLocalizations {
   String get name => 'שם';
 
   @override
+  String get firstName => 'שם פרטי';
+
+  @override
+  String get lastName => 'שם משפחה';
+
+  @override
   String get cancel => 'ביטול';
 
   @override
@@ -66,7 +72,10 @@ class AppLocalizationsHe extends AppLocalizations {
   String get newLeads => 'לידים חדשים';
 
   @override
-  String get followUp => 'לטיפול';
+  String get followUp => 'בטיפול';
+
+  @override
+  String get allLeads => 'כל הלידים';
 
   @override
   String get closed => 'סגורים';
@@ -256,4 +265,88 @@ class AppLocalizationsHe extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'הסיסמאות אינן תואמות';
+
+  @override
+  String get deleteNote => 'מחק הערה';
+
+  @override
+  String get deleteNoteConfirm => 'האם אתה בטוח שברצונך למחוק הערה זו?';
+
+  @override
+  String get delete => 'מחק';
+
+  @override
+  String get noteDeleted => 'ההערה נמחקה';
+
+  @override
+  String get noteDeleteFailed => 'מחיקת ההערה נכשלה';
+
+  @override
+  String get welcomeBack => 'שמחים לראותך שוב!';
+
+  @override
+  String get pleaseEnterEmail => 'נא להזין אימייל';
+
+  @override
+  String get pleaseEnterPassword => 'נא להזין סיסמה';
+
+  @override
+  String get pleaseEnterName => 'נא להזין שם';
+
+  @override
+  String get pleaseEnterFirstName => 'נא להזין שם פרטי';
+
+  @override
+  String get pleaseEnterLastName => 'נא להזין שם משפחה';
+
+  @override
+  String get pleaseEnterPhone => 'נא להזין מספר טלפון';
+
+  @override
+  String get pleaseConfirmPassword => 'נא לאשר את הסיסמה';
+
+  @override
+  String get passwordMinLength => 'הסיסמה חייבת להכיל לפחות 6 תווים';
+
+  @override
+  String get setReminder => 'הגדר תזכורת';
+
+  @override
+  String get reminder => 'תזכורת';
+
+  @override
+  String get reminderDate => 'תאריך תזכורת';
+
+  @override
+  String get reminderTime => 'שעת תזכורת';
+
+  @override
+  String get addReminder => 'הוסף תזכורת';
+
+  @override
+  String get editReminder => 'ערוך תזכורת';
+
+  @override
+  String get deleteReminder => 'מחק תזכורת';
+
+  @override
+  String get reminderSet => 'התזכורת נקבעה בהצלחה';
+
+  @override
+  String get reminderDeleted => 'התזכורת נמחקה';
+
+  @override
+  String get scheduleEvent => 'קבע אירוע';
+
+  @override
+  String get scheduleOnCalendar => 'קבע ביומן';
+
+  @override
+  String get openCalendar => 'פתח יומן';
+
+  @override
+  String get recentLeads => 'לידים אחרונים';
+
+  @override
+  String get viewAll => 'צפה בהכל';
 }

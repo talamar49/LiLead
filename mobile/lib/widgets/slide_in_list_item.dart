@@ -15,9 +15,12 @@ class SlideInListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return child
-        .animate(delay: delay * index)
-        .fadeIn(duration: 400.ms, curve: Curves.easeOut)
-        .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutQuad);
+    return Container(
+      key: ValueKey('slide-$index-${child.key}'),
+      child: child
+          .animate(delay: delay * index)
+          .fadeIn(duration: 400.ms, curve: Curves.easeOut)
+          .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutQuad),
+    );
   }
 }

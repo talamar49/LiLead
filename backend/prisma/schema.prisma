@@ -22,8 +22,24 @@ model User {
   // Relations
   leads         Lead[]
   notes         Note[]
+  deviceTokens  DeviceToken[]
   
   @@map("users")
+}
+
+// Device Token model for push notifications
+model DeviceToken {
+  id            String    @id @default(cuid())
+  token         String    @unique
+  platform      String    // 'ios', 'android', 'web'
+  userId        String
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@index([userId])
+  @@index([token])
+  @@map("device_tokens")
 }
 
 // Lead status enum
@@ -75,18 +91,21 @@ model Lead {
 
 // Note model for lead notes with timestamps
 model Note {
-  id            String      @id @default(cuid())
-  content       String
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+  id                String      @id @default(cuid())
+  content           String
+  reminderAt        DateTime?   // Optional reminder date/time
+  reminderSent      Boolean     @default(false)  // Track if notification was sent
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
   
   // Relations
-  leadId        String
-  lead          Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
-  userId        String
-  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  leadId            String
+  lead              Lead        @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  userId            String
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@index([leadId])
   @@index([userId])
+  @@index([reminderAt, reminderSent])
   @@map("notes")
 }

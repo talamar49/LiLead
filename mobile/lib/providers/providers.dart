@@ -38,7 +38,8 @@ final storageServiceProvider = Provider<StorageService>((ref) {
 final authServiceProvider = Provider<AuthService>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   final storageService = ref.watch(storageServiceProvider);
-  return AuthService(apiService, storageService);
+  final dio = ref.watch(dioProvider);
+  return AuthService(apiService, storageService, dio);
 });
 
 final leadServiceProvider = Provider<LeadService>((ref) {

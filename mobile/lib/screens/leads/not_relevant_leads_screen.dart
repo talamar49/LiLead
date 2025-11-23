@@ -110,7 +110,12 @@ class _NotRelevantLeadsScreenState extends ConsumerState<NotRelevantLeadsScreen>
                                 final lead = leadsState.filteredLeads[index];
                                 return SlideInListItem(
                                   index: index,
-                                  child: LeadListItem(lead: lead),
+                                  child: LeadListItem(
+                                    lead: lead,
+                                    onReturn: () {
+                                      ref.read(leadProvider.notifier).getLeads(status: LeadStatus.NOT_RELEVANT);
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -119,6 +124,8 @@ class _NotRelevantLeadsScreenState extends ConsumerState<NotRelevantLeadsScreen>
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         onPressed: () => context.push('/leads/add'),
         child: const Icon(Icons.add),
       ),

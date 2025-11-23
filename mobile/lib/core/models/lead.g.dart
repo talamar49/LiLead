@@ -17,8 +17,8 @@ Lead _$LeadFromJson(Map<String, dynamic> json) => Lead(
   status: $enumDecode(_$LeadStatusEnumMap, json['status']),
   source: $enumDecode(_$LeadSourceEnumMap, json['source']),
   customFields: json['customFields'] as Map<String, dynamic>?,
-  createdAt: DateTime.parse(json['createdAt'] as String),
-  updatedAt: DateTime.parse(json['updatedAt'] as String),
+  createdAt: const DateTimeConverter().fromJson(json['createdAt'] as String),
+  updatedAt: const DateTimeConverter().fromJson(json['updatedAt'] as String),
   userId: json['userId'] as String,
   notes: (json['notes'] as List<dynamic>?)
       ?.map((e) => Note.fromJson(e as Map<String, dynamic>))
@@ -36,8 +36,8 @@ Map<String, dynamic> _$LeadToJson(Lead instance) => <String, dynamic>{
   'status': _$LeadStatusEnumMap[instance.status]!,
   'source': _$LeadSourceEnumMap[instance.source]!,
   'customFields': instance.customFields,
-  'createdAt': instance.createdAt.toIso8601String(),
-  'updatedAt': instance.updatedAt.toIso8601String(),
+  'createdAt': const DateTimeConverter().toJson(instance.createdAt),
+  'updatedAt': const DateTimeConverter().toJson(instance.updatedAt),
   'userId': instance.userId,
   'notes': instance.notes,
 };

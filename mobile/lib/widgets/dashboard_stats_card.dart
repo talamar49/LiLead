@@ -8,6 +8,7 @@ class DashboardStatsCard extends StatelessWidget {
   final Color color;
   final num? animatedValue;
   final bool isPercentage;
+  final VoidCallback? onTap;
 
   const DashboardStatsCard({
     super.key,
@@ -17,6 +18,7 @@ class DashboardStatsCard extends StatelessWidget {
     required this.color,
     this.animatedValue,
     this.isPercentage = false,
+    this.onTap,
   });
 
   @override
@@ -24,10 +26,12 @@ class DashboardStatsCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+        color: theme.cardTheme.color ?? (isDark ? const Color(0xFF3A3A3C) : Colors.white),
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           if (!isDark)
@@ -86,6 +90,7 @@ class DashboardStatsCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
       ),
     );
   }

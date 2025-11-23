@@ -91,7 +91,12 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
                                 final lead = leadsState.filteredLeads[index];
                                 return SlideInListItem(
                                   index: index,
-                                  child: LeadListItem(lead: lead),
+                                  child: LeadListItem(
+                                    lead: lead,
+                                    onReturn: () {
+                                      ref.read(leadProvider.notifier).getLeads(status: LeadStatus.IN_PROCESS);
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -100,6 +105,8 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         onPressed: () => context.push('/leads/add'),
         child: const Icon(Icons.add),
       ),

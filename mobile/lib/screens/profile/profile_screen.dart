@@ -3,10 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../l10n/app_localizations.dart';
-import '../../providers/providers.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/theme.dart';
 import '../../widgets/user_avatar.dart';
+import '../../core/utils/validators.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -20,20 +20,59 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   Future<void> _pickImage() async {
     final l10n = AppLocalizations.of(context)!;
-    final XFile? image = await _picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: 512,
-      maxHeight: 512,
-      imageQuality: 85,
-    );
-
-    if (image != null && mounted) {
-      // For now, just show a message. In production, you'd upload to a server
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('${l10n.success}: ${image.path}')),
+    
+    try {
+      final XFile? image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 512,
+        maxHeight: 512,
+        imageQuality: 85,
       );
-      // TODO: Upload image and update avatarUrl
-      // await ref.read(authProvider.notifier).updateProfile(avatarUrl: uploadedUrl);
+
+      if (image != null && mounted) {
+        // Show loading indicator
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => const Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
+
+        try {
+          // Upload image and update profile (using XFile directly)
+          await ref.read(authProvider.notifier).updateAvatar(image);
+          
+          if (mounted) {
+            Navigator.pop(context); // Close loading dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(l10n.success),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
+        } catch (e) {
+          if (mounted) {
+            Navigator.pop(context); // Close loading dialog
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${l10n.error}: ${e.toString()}'),
+                backgroundColor: AppTheme.errorColor,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${l10n.error}: ${e.toString()}'),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
     }
   }
 
@@ -98,7 +137,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 8),
             // Email
             Text(
-              user.email,
+              user.email ?? 'No email',
               style: theme.textTheme.bodyLarge?.copyWith(color: Colors.grey),
             ),
             const SizedBox(height: 32),
@@ -250,6 +289,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     bool showCurrentPassword = false;
     bool showNewPassword = false;
     bool showConfirmPassword = false;
+    
+    // Real-time validation states
+    String? currentPasswordError;
+    String? newPasswordError;
+    String? confirmPasswordError;
 
     await showDialog(
       context: context,
@@ -271,76 +315,124 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextFormField(
-                    controller: currentPasswordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.currentPassword,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(showCurrentPassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => showCurrentPassword = !showCurrentPassword),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: TextFormField(
+                      controller: currentPasswordController,
+                      decoration: InputDecoration(
+                        labelText: l10n.currentPassword,
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(showCurrentPassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => showCurrentPassword = !showCurrentPassword),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        errorText: currentPasswordError,
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      obscureText: !showCurrentPassword,
+                      onChanged: (value) {
+                        setState(() {
+                          currentPasswordError = Validators.validateRequired(
+                            value,
+                            l10n.requiredField,
+                          );
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.requiredField;
+                        }
+                        return null;
+                      },
                     ),
-                    obscureText: !showCurrentPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.requiredField;
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: newPasswordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.newPassword,
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(showNewPassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => showNewPassword = !showNewPassword),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: TextFormField(
+                      controller: newPasswordController,
+                      decoration: InputDecoration(
+                        labelText: l10n.newPassword,
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(showNewPassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => showNewPassword = !showNewPassword),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        errorText: newPasswordError,
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      obscureText: !showNewPassword,
+                      onChanged: (value) {
+                        setState(() {
+                          newPasswordError = Validators.validatePassword(
+                            value,
+                            l10n.pleaseEnterPassword,
+                            l10n.passwordTooShort,
+                          );
+                          // Re-validate confirm password
+                          if (confirmPasswordController.text.isNotEmpty) {
+                            confirmPasswordError = Validators.validatePasswordConfirm(
+                              newPasswordController.text,
+                              confirmPasswordController.text,
+                              l10n.pleaseConfirmPassword,
+                              l10n.passwordsDoNotMatch,
+                            );
+                          }
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.requiredField;
+                        }
+                        if (value.length < 6) {
+                          return l10n.passwordTooShort;
+                        }
+                        return null;
+                      },
                     ),
-                    obscureText: !showNewPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.requiredField;
-                      }
-                      if (value.length < 6) {
-                        return l10n.passwordTooShort;
-                      }
-                      return null;
-                    },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: confirmPasswordController,
-                    decoration: InputDecoration(
-                      labelText: l10n.confirmPassword,
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(showConfirmPassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: TextFormField(
+                      controller: confirmPasswordController,
+                      decoration: InputDecoration(
+                        labelText: l10n.confirmPassword,
+                        prefixIcon: const Icon(Icons.lock),
+                        suffixIcon: IconButton(
+                          icon: Icon(showConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                          onPressed: () => setState(() => showConfirmPassword = !showConfirmPassword),
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        errorText: confirmPasswordError,
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                      obscureText: !showConfirmPassword,
+                      onChanged: (value) {
+                        setState(() {
+                          confirmPasswordError = Validators.validatePasswordConfirm(
+                            newPasswordController.text,
+                            value,
+                            l10n.pleaseConfirmPassword,
+                            l10n.passwordsDoNotMatch,
+                          );
+                        });
+                      },
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return l10n.requiredField;
+                        }
+                        if (value != newPasswordController.text) {
+                          return l10n.passwordsDoNotMatch;
+                        }
+                        return null;
+                      },
                     ),
-                    obscureText: !showConfirmPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return l10n.requiredField;
-                      }
-                      if (value != newPasswordController.text) {
-                        return l10n.passwordsDoNotMatch;
-                      }
-                      return null;
-                    },
                   ),
                 ],
               ),

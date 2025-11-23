@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class AppConstants {
   // API Configuration
   // Use Android emulator host alias by default for emulator compatibility.
@@ -5,6 +7,11 @@ class AppConstants {
   static String get baseUrl {
     const env = String.fromEnvironment('API_BASE_URL');
     if (env.isNotEmpty) return env;
+    
+    if (kIsWeb) {
+      return 'http://localhost:3000/api';
+    }
+    
     // Android emulator (default), iOS simulator and web/desktop can use localhost
     return 'http://10.0.2.2:3000/api';
   }

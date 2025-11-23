@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../core/models/user.dart';
 import '../core/services/auth_service.dart';
 import 'providers.dart';
@@ -110,6 +110,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
       state = state.copyWith(user: user, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateAvatar(XFile imageFile) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final user = await _authService.updateAvatar(imageFile);
+      state = state.copyWith(user: user, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
     }
   }
 }

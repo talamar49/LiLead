@@ -97,18 +97,20 @@ class _AddLeadScreenState extends ConsumerState<AddLeadScreen> {
     final l10n = AppLocalizations.of(context)!;
     final mediaQuery = MediaQuery.of(context);
 
-    return Container(
-      padding: EdgeInsets.only(
-        bottom: mediaQuery.viewInsets.bottom,
-        left: 16,
-        right: 16,
-        top: 16,
-      ),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
+    return Material(
+      color: Colors.transparent,
+      child: Container(
+        padding: EdgeInsets.only(
+          bottom: mediaQuery.viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Handle bar
@@ -247,6 +249,7 @@ class _AddLeadScreenState extends ConsumerState<AddLeadScreen> {
             ),
           ),
         ],
+      ),
       ),
     );
   }

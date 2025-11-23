@@ -91,7 +91,12 @@ class _ClosedLeadsScreenState extends ConsumerState<ClosedLeadsScreen> {
                                 final lead = leadsState.filteredLeads[index];
                                 return SlideInListItem(
                                   index: index,
-                                  child: LeadListItem(lead: lead),
+                                  child: LeadListItem(
+                                    lead: lead,
+                                    onReturn: () {
+                                      ref.read(leadProvider.notifier).getLeads(status: LeadStatus.CLOSED);
+                                    },
+                                  ),
                                 );
                               },
                             ),
@@ -100,6 +105,8 @@ class _ClosedLeadsScreenState extends ConsumerState<ClosedLeadsScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
         onPressed: () => context.push('/leads/add'),
         child: const Icon(Icons.add),
       ),

@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
 import '../config/theme.dart';
+import '../config/constants.dart';
 import '../l10n/app_localizations.dart';
 
 class UserAvatar extends ConsumerWidget {
@@ -121,6 +122,18 @@ class UserAvatar extends ConsumerWidget {
 
     if (user == null) return const SizedBox.shrink();
 
+    // Build full avatar URL if it's a relative path
+    String? fullAvatarUrl;
+    if (user.avatarUrl != null && user.avatarUrl!.isNotEmpty) {
+      if (user.avatarUrl!.startsWith('http')) {
+        fullAvatarUrl = user.avatarUrl;
+      } else {
+        // Remove /api from base URL and append the avatar path
+        final baseUrl = AppConstants.baseUrl.replaceAll('/api', '');
+        fullAvatarUrl = '$baseUrl${user.avatarUrl}';
+      }
+    }
+
     return GestureDetector(
       onTap: onTap ?? () => _showAvatarMenu(context, ref),
       child: Container(
@@ -141,10 +154,10 @@ class UserAvatar extends ConsumerWidget {
                 ]
               : null,
         ),
-        child: user.avatarUrl != null && user.avatarUrl!.isNotEmpty
+        child: fullAvatarUrl != null
             ? ClipOval(
                 child: CachedNetworkImage(
-                  imageUrl: user.avatarUrl!,
+                  imageUrl: fullAvatarUrl,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => _buildInitialsAvatar(user.initials),
                   errorWidget: (context, url, error) => _buildInitialsAvatar(user.initials),

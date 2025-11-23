@@ -56,3 +56,22 @@ flutter run
 - `backend/`: Next.js application (API & Database).
 - `mobile/`: Flutter application (iOS & Android).
 - `start-all.sh`: Orchestration script.
+
+## Features
+
+### Push Notifications 🔔
+LiLead now supports real-time push notifications for note reminders!
+
+- **Automatic Reminders**: Get notified when notes with reminders are due
+- **Multi-device Support**: Receive notifications on all your devices
+- **Background Processing**: Notifications work even when the app is closed
+
+**Quick Setup**: See [QUICK_START_NOTIFICATIONS.md](QUICK_START_NOTIFICATIONS.md)
+**Full Documentation**: See [NOTIFICATIONS_SETUP.md](NOTIFICATIONS_SETUP.md)
+
+## Additional Documentation
+
+- **API Documentation**: [backend/API_DOCS.md](backend/API_DOCS.md)
+- **User Guide**: [USER_GUIDE.md](USER_GUIDE.md)
+- **Notification Setup**: [NOTIFICATIONS_SETUP.md](NOTIFICATIONS_SETUP.md)
+- **Quick Start - Notifications**: [QUICK_START_NOTIFICATIONS.md](QUICK_START_NOTIFICATIONS.md)

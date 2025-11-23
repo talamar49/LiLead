@@ -45,4 +45,26 @@ class ActionLauncher {
         .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
         .join('&');
   }
+
+  // Launch Google Calendar
+  static Future<bool> launchGoogleCalendar({String? title, String? details}) async {
+    // Try to open Google Calendar app first, then fallback to web
+    final appUri = Uri.parse('content://com.android.calendar/time');
+    
+    // If app doesn't work, use web URL
+    final webUri = Uri.parse('https://calendar.google.com/calendar/r/eventedit');
+    
+    try {
+      if (await canLaunchUrl(appUri)) {
+        return await launchUrl(appUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      // Fallback to web
+    }
+    
+    if (await canLaunchUrl(webUri)) {
+      return await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    }
+    return false;
+  }
 }

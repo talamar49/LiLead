@@ -1,13 +1,17 @@
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import '../api/api_service.dart';
 import '../models/user.dart';
+import '../models/upload_response.dart';
+import '../models/api_response.dart';
 import 'storage_service.dart';
 
 class AuthService {
   final ApiService _apiService;
   final StorageService _storageService;
+  final Dio _dio;
 
-  AuthService(this._apiService, this._storageService);
+  AuthService(this._apiService, this._storageService, this._dio);
 
   // Register new user
   Future<User> register({
@@ -126,6 +130,56 @@ class AuthService {
       }
     } on DioException catch (e) {
       throw _handleError(e);
+    }
+  }
+
+  // Upload avatar image
+  Future<String> uploadAvatar(XFile imageFile) async {
+    try {
+      // Create MultipartFile from XFile for cross-platform compatibility
+      final bytes = await imageFile.readAsBytes();
+      final multipartFile = MultipartFile.fromBytes(
+        bytes,
+        filename: imageFile.name,
+      );
+      
+      // Create form data
+      final formData = FormData.fromMap({
+        'avatar': multipartFile,
+      });
+      
+      // Use Dio directly for the upload
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/upload/avatar',
+        data: formData,
+      );
+      
+      // Parse the response
+      final apiResponse = ApiResponse<UploadResponse>.fromJson(
+        response.data!,
+        (json) => UploadResponse.fromJson(json as Map<String, dynamic>),
+      );
+
+      if (apiResponse.success && apiResponse.data != null) {
+        return apiResponse.data!.avatarUrl;
+      } else {
+        throw Exception(apiResponse.error ?? 'Avatar upload failed');
+      }
+    } on DioException catch (e) {
+      throw _handleError(e);
+    }
+  }
+
+  // Update avatar (upload and update profile in one step)
+  Future<User> updateAvatar(XFile imageFile) async {
+    try {
+      // First upload the image
+      final avatarUrl = await uploadAvatar(imageFile);
+      
+      // Then update the profile with the new avatar URL
+      return await updateProfile(avatarUrl: avatarUrl);
+    } catch (e) {
+      rethrow;
     }
   }
 

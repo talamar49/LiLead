@@ -33,6 +33,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get name => 'Name';
 
   @override
+  String get firstName => 'First Name';
+
+  @override
+  String get lastName => 'Last Name';
+
+  @override
   String get cancel => 'Cancel';
 
   @override
@@ -67,6 +73,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get followUp => 'Follow Up';
+
+  @override
+  String get allLeads => 'All Leads';
 
   @override
   String get closed => 'Closed';
@@ -256,4 +265,88 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get passwordsDoNotMatch => 'Passwords do not match';
+
+  @override
+  String get deleteNote => 'Delete Note';
+
+  @override
+  String get deleteNoteConfirm => 'Are you sure you want to delete this note?';
+
+  @override
+  String get delete => 'Delete';
+
+  @override
+  String get noteDeleted => 'Note deleted';
+
+  @override
+  String get noteDeleteFailed => 'Failed to delete note';
+
+  @override
+  String get welcomeBack => 'Welcome back!';
+
+  @override
+  String get pleaseEnterEmail => 'Please enter your email';
+
+  @override
+  String get pleaseEnterPassword => 'Please enter your password';
+
+  @override
+  String get pleaseEnterName => 'Please enter your name';
+
+  @override
+  String get pleaseEnterFirstName => 'Please enter your first name';
+
+  @override
+  String get pleaseEnterLastName => 'Please enter your last name';
+
+  @override
+  String get pleaseEnterPhone => 'Please enter your phone number';
+
+  @override
+  String get pleaseConfirmPassword => 'Please confirm your password';
+
+  @override
+  String get passwordMinLength => 'Password must be at least 6 characters';
+
+  @override
+  String get setReminder => 'Set Reminder';
+
+  @override
+  String get reminder => 'Reminder';
+
+  @override
+  String get reminderDate => 'Reminder Date';
+
+  @override
+  String get reminderTime => 'Reminder Time';
+
+  @override
+  String get addReminder => 'Add Reminder';
+
+  @override
+  String get editReminder => 'Edit Reminder';
+
+  @override
+  String get deleteReminder => 'Delete Reminder';
+
+  @override
+  String get reminderSet => 'Reminder set successfully';
+
+  @override
+  String get reminderDeleted => 'Reminder deleted';
+
+  @override
+  String get scheduleEvent => 'Schedule Event';
+
+  @override
+  String get scheduleOnCalendar => 'Schedule on Calendar';
+
+  @override
+  String get openCalendar => 'Open Calendar';
+
+  @override
+  String get recentLeads => 'Recent Leads';
+
+  @override
+  String get viewAll => 'View All';
 }
