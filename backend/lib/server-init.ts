@@ -3,10 +3,10 @@ import { initializeNotificationScheduler } from './notification-scheduler'
 
 // Only initialize in Node.js runtime, not in Edge runtime
 // Check if we're in a Node.js environment
-const isNodeRuntime = typeof process !== 'undefined' && 
-                      process.versions && 
-                      process.versions.node &&
-                      typeof EdgeRuntime === 'undefined'
+const isNodeRuntime = typeof process !== 'undefined' &&
+    process.versions &&
+    process.versions.node &&
+    typeof (globalThis as any).EdgeRuntime === 'undefined'
 
 // Initialize once when the module is loaded (only in Node.js runtime)
 if (process.env.NODE_ENV !== 'test' && isNodeRuntime) {

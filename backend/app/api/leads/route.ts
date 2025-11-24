@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
                 phone,
                 email: email || null,
                 source: source || 'MANUAL',
-                customFields: customFields || null,
+                customFields: customFields ?? undefined,
                 userId: user.id,
             },
             include: {

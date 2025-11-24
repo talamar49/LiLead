@@ -10,7 +10,7 @@ This plan outlines the steps to host your backend at `lilead.stbamar.space` and 
     ```yaml
     ingress:
       - hostname: lilead.stbamar.space
-        service: http://localhost:3000
+        service: http://localhost:56744
       # ... existing rules ...
     ```
 3.  **Restart Tunnel**:
@@ -30,8 +30,8 @@ This plan outlines the steps to host your backend at `lilead.stbamar.space` and 
     # Install PM2
     npm install -g pm2
     
-    # Start Backend
-    pm2 start npm --name "lilead-backend" -- start
+    # Start Backend on port 56744
+    pm2 start npm --name "lilead-backend" -- start -- -p 56744
     
     # Ensure it restarts on reboot
     pm2 save

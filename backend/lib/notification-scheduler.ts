@@ -18,7 +18,7 @@ export function initializeNotificationScheduler() {
         console.log('Checking for due reminders...')
         try {
             const result = await NotificationService.checkAndSendReminders()
-            if (result.success && result.count > 0) {
+            if (result.success && (result as any).count > 0) {
                 console.log(`Processed ${result.count} reminders`)
             }
         } catch (error) {
