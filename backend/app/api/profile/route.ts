@@ -8,7 +8,7 @@ import { successResponse, errorResponse, unauthorizedResponse } from '@/lib/api-
 const updateProfileSchema = z.object({
     name: z.string().min(2).optional(),
     email: z.string().email().optional(),
-    avatarUrl: z.string().url().optional().or(z.literal('')),
+    avatarUrl: z.string().optional().or(z.literal('')),
     currentPassword: z.string().optional(),
     newPassword: z.string().min(6).optional(),
 })

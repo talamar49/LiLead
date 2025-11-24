@@ -285,6 +285,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get welcomeBack => 'Welcome back!';
 
   @override
+  String get editNote => 'Edit Note';
+
+  @override
+  String get noteUpdated => 'Note updated';
+
+  @override
+  String get noteUpdateFailed => 'Failed to update note';
+
+  @override
   String get pleaseEnterEmail => 'Please enter your email';
 
   @override
@@ -330,7 +339,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get deleteReminder => 'Delete Reminder';
 
   @override
-  String get reminderSet => 'Reminder set successfully';
+  String get reminderSet => 'Reminder Set';
 
   @override
   String get reminderDeleted => 'Reminder deleted';
@@ -348,5 +357,96 @@ class AppLocalizationsEn extends AppLocalizations {
   String get recentLeads => 'Recent Leads';
 
   @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
   String get viewAll => 'View All';
+
+  @override
+  String get noteContent => 'Note Content';
+
+  @override
+  String get noReminder => 'No Reminder';
+
+  @override
+  String get clearReminder => 'Clear Reminder';
+
+  @override
+  String get monthJan => 'Jan';
+
+  @override
+  String get monthFeb => 'Feb';
+
+  @override
+  String get monthMar => 'Mar';
+
+  @override
+  String get monthApr => 'Apr';
+
+  @override
+  String get monthMay => 'May';
+
+  @override
+  String get monthJun => 'Jun';
+
+  @override
+  String get monthJul => 'Jul';
+
+  @override
+  String get monthAug => 'Aug';
+
+  @override
+  String get monthSep => 'Sep';
+
+  @override
+  String get monthOct => 'Oct';
+
+  @override
+  String get monthNov => 'Nov';
+
+  @override
+  String get monthDec => 'Dec';
+
+  @override
+  String get notificationPermissionDenied =>
+      'Notification permission denied. Please enable it in settings to receive reminders.';
+
+  @override
+  String get deleteLeadConfirm => 'Are you sure you want to delete this lead?';
+
+  @override
+  String get leadDeleted => 'Lead deleted';
+
+  @override
+  String get leadDeleteFailed => 'Failed to delete lead';
+
+  @override
+  String reminderSetFor(Object minutes) {
+    return 'Reminder set for $minutes minutes from now';
+  }
+
+  @override
+  String get reminderFailed => 'Failed to set reminder';
+
+  @override
+  String get reminderInPast => 'Cannot set reminder in the past';
+
+  @override
+  String get noteAdded => 'Note Added';
+
+  @override
+  String get noteAddFailed => 'Failed to add note';
+
+  @override
+  String get batteryOptimizationTitle => 'Battery Optimization Active';
+
+  @override
+  String get batteryOptimizationMessage =>
+      'Your device is optimizing battery for this app. This may prevent notifications from firing when the app is in the background.\n\nWe strongly recommend disabling battery optimization for reliable notifications.\n\nWould you like to fix this now?';
+
+  @override
+  String get skip => 'Skip';
+
+  @override
+  String get fixNow => 'Fix Now';
 }

@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../l10n/app_localizations.dart';
 import '../../providers/providers.dart';
 import '../../providers/lead_provider.dart';
 import '../../core/models/lead.dart';
-import '../../core/models/lead.dart';
 import '../../widgets/lead_list_item.dart';
 import '../../widgets/slide_in_list_item.dart';
 import '../../widgets/user_avatar.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../../widgets/animated_fab.dart';
+import 'add_lead_screen.dart';
 
 class FollowUpScreen extends ConsumerStatefulWidget {
   const FollowUpScreen({super.key});
@@ -59,19 +61,34 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
               },
               elevation: MaterialStateProperty.all(0),
               backgroundColor: MaterialStateProperty.all(Colors.grey.shade100),
-            ),
+            ).animate()
+              .fadeIn(duration: 400.ms)
+              .slideY(begin: -0.1, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
           ),
           Expanded(
             child: leadsState.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? ListView.builder(
+                    itemCount: 10,
+                    itemBuilder: (context, index) {
+                      return const ShimmerLeadListItem()
+                          .animate(delay: Duration(milliseconds: index * 50))
+                          .fadeIn(duration: 400.ms);
+                    },
+                  )
                 : leadsState.error != null
                     ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(l10n.errorGeneric),
+                            Text(
+                              l10n.errorGeneric,
+                              style: const TextStyle(color: Colors.red),
+                            ),
+                            const SizedBox(height: 8),
                             ElevatedButton(
-                              onPressed: () => ref.read(leadProvider.notifier).getLeads(),
+                              onPressed: () {
+                                ref.read(leadProvider.notifier).getLeads(status: LeadStatus.IN_PROCESS);
+                              },
                               child: Text(l10n.retry),
                             ),
                           ],
@@ -79,7 +96,20 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
                       )
                     : leadsState.filteredLeads.isEmpty
                         ? Center(
-                            child: Text(l10n.noLeadsFound),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                                const SizedBox(height: 16),
+                                Text(
+                                  l10n.noLeadsFound,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
                           )
                         : RefreshIndicator(
                             onRefresh: () async {
@@ -91,12 +121,7 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
                                 final lead = leadsState.filteredLeads[index];
                                 return SlideInListItem(
                                   index: index,
-                                  child: LeadListItem(
-                                    lead: lead,
-                                    onReturn: () {
-                                      ref.read(leadProvider.notifier).getLeads(status: LeadStatus.IN_PROCESS);
-                                    },
-                                  ),
+                                  child: LeadListItem(lead: lead),
                                 );
                               },
                             ),
@@ -104,11 +129,17 @@ class _FollowUpScreenState extends ConsumerState<FollowUpScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        onPressed: () => context.push('/leads/add'),
-        child: const Icon(Icons.add),
+      floatingActionButton: AnimatedFab(
+        heroTag: 'follow_up_fab',
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            backgroundColor: Colors.transparent,
+            builder: (context) => const AddLeadScreen(),
+          );
+        },
+        icon: Icons.add,
       ),
     );
   }

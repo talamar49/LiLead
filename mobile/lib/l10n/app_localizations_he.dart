@@ -285,6 +285,15 @@ class AppLocalizationsHe extends AppLocalizations {
   String get welcomeBack => 'שמחים לראותך שוב!';
 
   @override
+  String get editNote => 'ערוך הערה';
+
+  @override
+  String get noteUpdated => 'ההערה עודכנה';
+
+  @override
+  String get noteUpdateFailed => 'עדכון ההערה נכשל';
+
+  @override
   String get pleaseEnterEmail => 'נא להזין אימייל';
 
   @override
@@ -330,7 +339,7 @@ class AppLocalizationsHe extends AppLocalizations {
   String get deleteReminder => 'מחק תזכורת';
 
   @override
-  String get reminderSet => 'התזכורת נקבעה בהצלחה';
+  String get reminderSet => 'תזכורת נקבעה';
 
   @override
   String get reminderDeleted => 'התזכורת נמחקה';
@@ -348,5 +357,96 @@ class AppLocalizationsHe extends AppLocalizations {
   String get recentLeads => 'לידים אחרונים';
 
   @override
+  String get recentActivity => 'פעילות אחרונה';
+
+  @override
   String get viewAll => 'צפה בהכל';
+
+  @override
+  String get noteContent => 'תוכן ההערה';
+
+  @override
+  String get noReminder => 'אין תזכורת';
+
+  @override
+  String get clearReminder => 'מחק תזכורת';
+
+  @override
+  String get monthJan => 'ינו׳';
+
+  @override
+  String get monthFeb => 'פבר׳';
+
+  @override
+  String get monthMar => 'מרץ';
+
+  @override
+  String get monthApr => 'אפר׳';
+
+  @override
+  String get monthMay => 'מאי';
+
+  @override
+  String get monthJun => 'יוני';
+
+  @override
+  String get monthJul => 'יולי';
+
+  @override
+  String get monthAug => 'אוג׳';
+
+  @override
+  String get monthSep => 'ספט׳';
+
+  @override
+  String get monthOct => 'אוק׳';
+
+  @override
+  String get monthNov => 'נוב׳';
+
+  @override
+  String get monthDec => 'דצמ׳';
+
+  @override
+  String get notificationPermissionDenied =>
+      'הרשאת התראות נדחתה. אנא אפשר אותה בהגדרות כדי לקבל תזכורות.';
+
+  @override
+  String get deleteLeadConfirm => 'האם אתה בטוח שברצונך למחוק ליד זה?';
+
+  @override
+  String get leadDeleted => 'הליד נמחק';
+
+  @override
+  String get leadDeleteFailed => 'מחיקת הליד נכשלה';
+
+  @override
+  String reminderSetFor(Object minutes) {
+    return 'תזכורת נקבעה ל-$minutes דקות מעכשיו';
+  }
+
+  @override
+  String get reminderFailed => 'לא ניתן לקבוע תזכורת';
+
+  @override
+  String get reminderInPast => 'לא ניתן לקבוע תזכורת בעבר';
+
+  @override
+  String get noteAdded => 'הערה נוספה';
+
+  @override
+  String get noteAddFailed => 'הוספת הערה נכשלה';
+
+  @override
+  String get batteryOptimizationTitle => 'אופטימיזציית סוללה פעילה';
+
+  @override
+  String get batteryOptimizationMessage =>
+      'המכשיר שלך מייעל את צריכת הסוללה עבור אפליקציה זו. זה עלול למנוע מהתראות להופיע כשהאפליקציה ברקע.\n\nמומלץ מאוד לבטל אופטימיזציה זו להתראות אמינות.\n\nלתקן את זה עכשיו?';
+
+  @override
+  String get skip => 'דלג';
+
+  @override
+  String get fixNow => 'תקן עכשיו';
 }

@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'config/theme.dart';
 import 'config/routes.dart';
@@ -12,20 +11,15 @@ import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Force reload for translation updates
   
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   
-  // Initialize notification service (only on mobile platforms, not web)
-  if (!kIsWeb) {
-    try {
-      await NotificationService().initialize();
-    } catch (e) {
-      debugPrint('Failed to initialize notifications: $e');
-    }
-  } else {
-    debugPrint('Notifications not supported on web - skipping initialization');
+  // Initialize notification service
+  try {
+    await NotificationService().initialize();
+  } catch (e) {
+    debugPrint('Failed to initialize notifications: $e');
   }
   
   runApp(

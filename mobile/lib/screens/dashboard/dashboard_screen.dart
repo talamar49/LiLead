@@ -11,6 +11,8 @@ import '../../core/models/lead.dart';
 import '../../widgets/dashboard_stats_card.dart';
 import '../../widgets/user_avatar.dart';
 import '../../widgets/lead_list_item.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../../widgets/animated_fab.dart';
 import '../../config/theme.dart';
 import '../leads/add_lead_screen.dart';
 
@@ -21,14 +23,37 @@ class DashboardScreen extends ConsumerStatefulWidget {
   ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
 }
 
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+class _DashboardScreenState extends ConsumerState<DashboardScreen> with TickerProviderStateMixin {
+  int touchedIndex = -1;
+  late AnimationController _pieAnimationController;
+  late Animation<double> _pieAnimation;
+
   @override
   void initState() {
     super.initState();
+    
+    // Initialize pie chart animation controller
+    _pieAnimationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+    
+    _pieAnimation = CurvedAnimation(
+      parent: _pieAnimationController,
+      curve: Curves.easeOutCubic,
+    );
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(leadProvider.notifier).getStatistics();
       ref.read(leadProvider.notifier).getLeads(); // Load all leads to show recent ones
+      _pieAnimationController.forward();
     });
+  }
+
+  @override
+  void dispose() {
+    _pieAnimationController.dispose();
+    super.dispose();
   }
 
   @override
@@ -48,13 +73,48 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
+              _pieAnimationController.reset();
               ref.read(leadProvider.notifier).getStatistics();
+              Future.delayed(const Duration(milliseconds: 100), () {
+                if (mounted) {
+                  _pieAnimationController.forward();
+                }
+              });
             },
           ),
         ],
       ),
       body: leadState.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Stats cards shimmer
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 16,
+                    mainAxisSpacing: 16,
+                    childAspectRatio: 1.4,
+                    children: List.generate(
+                      4,
+                      (index) => const ShimmerStatsCard()
+                          .animate(delay: Duration(milliseconds: index * 100))
+                          .fadeIn(duration: 400.ms),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  // Recent leads shimmer
+                  ...List.generate(
+                    5,
+                    (index) => const ShimmerLeadListItem()
+                        .animate(delay: Duration(milliseconds: index * 100))
+                        .fadeIn(duration: 400.ms),
+                  ),
+                ],
+              ),
+            )
           : leadState.error != null
               ? Center(
                   child: Column(
@@ -72,14 +132,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   ? Center(child: Text(l10n.noData))
                   : RefreshIndicator(
                       onRefresh: () async {
+                        _pieAnimationController.reset();
                         await ref.read(leadProvider.notifier).getStatistics();
+                        if (mounted) {
+                          _pieAnimationController.forward();
+                        }
                       },
                       child: SingleChildScrollView(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // Summary Cards Grid
+                            // Summary Cards Grid with staggered animation
                             GridView.count(
                               shrinkWrap: true,
                               physics: const NeverScrollableScrollPhysics(),
@@ -95,7 +159,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   icon: Icons.people,
                                   color: Colors.blue,
                                   onTap: () => context.go('/all-leads'),
-                                ),
+                                ).animate()
+                                  .fadeIn(duration: 400.ms, delay: 0.ms)
+                                  .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                                 DashboardStatsCard(
                                   title: l10n.conversionRate,
                                   value: '${stats.conversionRate.toStringAsFixed(1)}%',
@@ -103,7 +169,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   isPercentage: true,
                                   icon: Icons.trending_up,
                                   color: Colors.green,
-                                ),
+                                ).animate()
+                                  .fadeIn(duration: 400.ms, delay: 100.ms)
+                                  .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                                 DashboardStatsCard(
                                   title: l10n.newLeads,
                                   value: stats.byStatus.newCount.toString(),
@@ -111,7 +179,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   icon: Icons.fiber_new,
                                   color: Colors.orange,
                                   onTap: () => context.go('/new-leads'),
-                                ),
+                                ).animate()
+                                  .fadeIn(duration: 400.ms, delay: 200.ms)
+                                  .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                                 DashboardStatsCard(
                                   title: l10n.wonLeads,
                                   value: stats.byStatus.closed.toString(),
@@ -119,7 +189,9 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                                   icon: Icons.check_circle,
                                   color: Colors.purple,
                                   onTap: () => context.go('/closed'),
-                                ),
+                                ).animate()
+                                  .fadeIn(duration: 400.ms, delay: 300.ms)
+                                  .slideY(begin: 0.2, end: 0, duration: 400.ms, curve: Curves.easeOutCubic),
                               ],
                             ),
                             
@@ -131,33 +203,90 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            
-                            SizedBox(
-                              height: 250,
-                              child: PieChart(
-                                PieChartData(
-                                  sectionsSpace: 0,
-                                  centerSpaceRadius: 40,
-                                  sections: _getSections(stats.byStatus),
-                                ),
-                              ).animate()
-                                .scale(duration: 1000.ms, curve: Curves.easeOutBack)
-                                .fadeIn(duration: 1000.ms),
-                            ),
+                            ).animate()
+                              .fadeIn(duration: 400.ms)
+                              .slideX(begin: -0.2, end: 0),
                             
                             const SizedBox(height: 16),
                             
-                            // Legend
-                            Wrap(
-                              spacing: 16,
-                              runSpacing: 8,
-                              alignment: WrapAlignment.center,
+                            AnimatedBuilder(
+                              animation: _pieAnimation,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: 0.5 + (_pieAnimation.value * 0.5),
+                                  child: Opacity(
+                                    opacity: _pieAnimation.value,
+                                    child: SizedBox(
+                                      height: 350,
+                                      child: PieChart(
+                                        PieChartData(
+                                          pieTouchData: PieTouchData(
+                                            touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                                              setState(() {
+                                                if (!event.isInterestedForInteractions ||
+                                                    pieTouchResponse == null ||
+                                                    pieTouchResponse.touchedSection == null) {
+                                                  touchedIndex = -1;
+                                                  return;
+                                                }
+                                                touchedIndex = pieTouchResponse
+                                                    .touchedSection!.touchedSectionIndex;
+                                              });
+                                            },
+                                          ),
+                                          sectionsSpace: 2,
+                                          centerSpaceRadius: 60,
+                                          sections: _getAnimatedSections(stats.byStatus, _pieAnimation.value),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            
+                            const SizedBox(height: 24),
+                            
+                            // Legend with staggered animation in 2x2 grid
+                            Column(
                               children: [
-                                _buildLegendItem(l10n.statusNew, stats.byStatus.newCount, AppTheme.newLeadColor),
-                                _buildLegendItem(l10n.statusInProcess, stats.byStatus.inProcess, AppTheme.inProcessColor),
-                                _buildLegendItem(l10n.statusClosed, stats.byStatus.closed, AppTheme.closedColor),
-                                _buildLegendItem(l10n.statusNotRelevant, stats.byStatus.notRelevant, AppTheme.notRelevantColor),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Flexible(
+                                      child: _buildLegendItem(l10n.statusNew, stats.byStatus.newCount, AppTheme.newLeadColor)
+                                        .animate()
+                                        .fadeIn(duration: 500.ms, delay: 600.ms)
+                                        .slideY(begin: 0.3, end: 0, duration: 500.ms, delay: 600.ms),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: _buildLegendItem(l10n.statusInProcess, stats.byStatus.inProcess, AppTheme.inProcessColor)
+                                        .animate()
+                                        .fadeIn(duration: 500.ms, delay: 750.ms)
+                                        .slideY(begin: 0.3, end: 0, duration: 500.ms, delay: 750.ms),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Flexible(
+                                      child: _buildLegendItem(l10n.statusClosed, stats.byStatus.closed, AppTheme.closedColor)
+                                        .animate()
+                                        .fadeIn(duration: 500.ms, delay: 900.ms)
+                                        .slideY(begin: 0.3, end: 0, duration: 500.ms, delay: 900.ms),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Flexible(
+                                      child: _buildLegendItem(l10n.statusNotRelevant, stats.byStatus.notRelevant, AppTheme.notRelevantColor)
+                                        .animate()
+                                        .fadeIn(duration: 500.ms, delay: 1050.ms)
+                                        .slideY(begin: 0.3, end: 0, duration: 500.ms, delay: 1050.ms),
+                                    ),
+                                  ],
+                                ),
                               ],
                             ),
 
@@ -173,55 +302,73 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                             const SizedBox(height: 24),
                             SizedBox(
                               height: 200,
-                              child: BarChart(
-                                BarChartData(
-                                  alignment: BarChartAlignment.spaceAround,
-                                  maxY: _getMaxSourceCount(stats.bySource).toDouble() + 2,
-                                  barTouchData: BarTouchData(
-                                    enabled: true,
-                                    touchTooltipData: BarTouchTooltipData(
-                                      getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                                        return BarTooltipItem(
-                                          rod.toY.round().toString(),
-                                          const TextStyle(color: Colors.white),
-                                        );
-                                      },
-                                    ),
-                                  ),
-                                  titlesData: FlTitlesData(
-                                    show: true,
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        getTitlesWidget: (value, meta) => _getTitles(value, meta, context),
-                                        reservedSize: 40,
+                              child: Stack(
+                                children: [
+                                  BarChart(
+                                    BarChartData(
+                                      alignment: BarChartAlignment.spaceAround,
+                                      maxY: _getMaxSourceCount(stats.bySource).toDouble() + 2,
+                                      barTouchData: BarTouchData(
+                                        enabled: true,
+                                        touchTooltipData: BarTouchTooltipData(
+                                          getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                                            return BarTooltipItem(
+                                              rod.toY.round().toString(),
+                                              const TextStyle(color: Colors.white),
+                                            );
+                                          },
+                                        ),
                                       ),
+                                      titlesData: FlTitlesData(
+                                        show: true,
+                                        bottomTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            getTitlesWidget: (value, meta) => _getTitles(value, meta, context),
+                                            reservedSize: 40,
+                                          ),
+                                        ),
+                                        leftTitles: AxisTitles(
+                                          sideTitles: SideTitles(
+                                            showTitles: true,
+                                            reservedSize: 40,
+                                            getTitlesWidget: (value, meta) {
+                                              return Text(
+                                                value.toInt().toString(),
+                                                style: const TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                        rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                      ),
+                                      gridData: const FlGridData(show: false),
+                                      borderData: FlBorderData(show: false),
+                                      barGroups: _getBarGroups(stats.bySource),
                                     ),
-                                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                                  ),
-                                  gridData: const FlGridData(show: false),
-                                  borderData: FlBorderData(show: false),
-                                  barGroups: _getBarGroups(stats.bySource),
-                                ),
-                              ).animate()
-                                .slideY(begin: 0.3, duration: 1000.ms, curve: Curves.easeOutQuart)
-                                .fadeIn(duration: 1000.ms),
+                                  ).animate()
+                                    .slideY(begin: 0.3, duration: 1000.ms, curve: Curves.easeOutQuart)
+                                    .fadeIn(duration: 1000.ms),
+                                  // Overlay bar values
+                                  ..._buildBarValueOverlays(stats.bySource),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 32),
                             
-                            // Recent Leads Section
-                            _buildRecentLeadsSection(context, l10n, ref),
+                            // Recent Activity Section
+                            _buildRecentActivitySection(context, l10n, ref),
                             
                             const SizedBox(height: 32),
                           ],
                         ),
                       ),
                     ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
+      floatingActionButton: AnimatedFab(
         onPressed: () {
           showModalBottomSheet(
             context: context,
@@ -230,56 +377,168 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             builder: (context) => const AddLeadScreen(),
           );
         },
-        child: const Icon(Icons.add),
+        icon: Icons.add,
       ),
     );
   }
 
   Widget _buildLegendItem(String label, int value, Color color) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.3), width: 1),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: color.withOpacity(0.5),
+                  blurRadius: 4,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(width: 4),
-        Text('$label: $value'),
-      ],
+          const SizedBox(width: 8),
+          Text(
+            '$label: ',
+            style: const TextStyle(fontWeight: FontWeight.w500),
+          ),
+          Text(
+            value.toString(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  List<PieChartSectionData> _getSections(StatusStats stats) {
+  List<PieChartSectionData> _getAnimatedSections(StatusStats stats, double animationValue) {
     final total = stats.newCount + stats.inProcess + stats.closed + stats.notRelevant;
     if (total == 0) return [];
 
-    return [
-      if (stats.newCount > 0) _buildSection(stats.newCount, total, AppTheme.newLeadColor),
-      if (stats.inProcess > 0) _buildSection(stats.inProcess, total, AppTheme.inProcessColor),
-      if (stats.closed > 0) _buildSection(stats.closed, total, AppTheme.closedColor),
-      if (stats.notRelevant > 0) _buildSection(stats.notRelevant, total, AppTheme.notRelevantColor),
-    ];
+    int sectionIndex = 0;
+    final sections = <PieChartSectionData>[];
+    
+    if (stats.newCount > 0) {
+      sections.add(_buildAnimatedSection(
+        stats.newCount, 
+        total, 
+        AppTheme.newLeadColor, 
+        sectionIndex,
+        animationValue,
+      ));
+      sectionIndex++;
+    }
+    
+    if (stats.inProcess > 0) {
+      sections.add(_buildAnimatedSection(
+        stats.inProcess, 
+        total, 
+        AppTheme.inProcessColor, 
+        sectionIndex,
+        animationValue,
+      ));
+      sectionIndex++;
+    }
+    
+    if (stats.closed > 0) {
+      sections.add(_buildAnimatedSection(
+        stats.closed, 
+        total, 
+        AppTheme.closedColor, 
+        sectionIndex,
+        animationValue,
+      ));
+      sectionIndex++;
+    }
+    
+    if (stats.notRelevant > 0) {
+      sections.add(_buildAnimatedSection(
+        stats.notRelevant, 
+        total, 
+        AppTheme.notRelevantColor, 
+        sectionIndex,
+        animationValue,
+      ));
+      sectionIndex++;
+    }
+    
+    return sections;
   }
 
-  PieChartSectionData _buildSection(int value, int total, Color color) {
+  PieChartSectionData _buildAnimatedSection(
+    int value, 
+    int total, 
+    Color color, 
+    int index,
+    double animationValue,
+  ) {
     final percentage = (value / total) * 100;
-    const fontSize = 16.0;
-    const radius = 50.0;
+    const fontSize = 18.0;
+    const baseRadius = 80.0;
+    
+    // Stagger animation for each section
+    final sectionDelay = index * 0.15;
+    final adjustedAnimation = ((animationValue - sectionDelay) / (1 - sectionDelay)).clamp(0.0, 1.0);
+    
+    // Calculate animated values
+    final animatedValue = value.toDouble() * adjustedAnimation;
+    final isTouched = index == touchedIndex;
+    final radius = isTouched ? baseRadius + 20 : baseRadius;
+    final shadowElevation = isTouched ? 8.0 : 0.0;
 
     return PieChartSectionData(
       color: color,
-      value: value.toDouble(),
-      title: '${percentage.toStringAsFixed(0)}%',
+      value: animatedValue,
+      title: adjustedAnimation > 0.5 ? '${percentage.toStringAsFixed(0)}%' : '',
       radius: radius,
-      titleStyle: const TextStyle(
+      titleStyle: TextStyle(
         fontSize: fontSize,
         fontWeight: FontWeight.bold,
         color: Colors.white,
+        shadows: isTouched ? [
+          Shadow(
+            color: Colors.black.withOpacity(0.5),
+            blurRadius: 4,
+          ),
+        ] : null,
       ),
+      badgeWidget: isTouched ? Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.5),
+              blurRadius: 8,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: Text(
+          value.toString(),
+          style: TextStyle(
+            color: color,
+            fontWeight: FontWeight.bold,
+            fontSize: 14,
+          ),
+        ),
+      ) : null,
+      badgePositionPercentageOffset: 1.3,
     );
   }
 
@@ -370,6 +629,62 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
+  List<Widget> _buildBarValueOverlays(SourceStats stats) {
+    final maxValue = _getMaxSourceCount(stats).toDouble() + 2;
+    final values = [
+      stats.facebook,
+      stats.instagram,
+      stats.whatsapp,
+      stats.tiktok,
+      stats.manual,
+      stats.webhook,
+    ];
+    
+    return List.generate(6, (index) {
+      final value = values[index];
+      if (value == 0) return const SizedBox.shrink();
+      
+      // Calculate position based on bar index and value
+      // Chart has 6 bars evenly spaced with reserved space on left (40px)
+      final chartWidth = MediaQuery.of(context).size.width - 32 - 40; // padding + left axis
+      final barSpacing = chartWidth / 6;
+      final xPosition = 40 + (barSpacing * index) + (barSpacing / 2) - 12; // centered on bar
+      
+      // Calculate y position based on value (inverted because chart coordinates)
+      final chartHeight = 200 - 40; // total height - bottom axis
+      final yPosition = chartHeight * (1 - (value / maxValue)) - 20; // 20px above bar
+      
+      return Positioned(
+        left: xPosition,
+        top: yPosition,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            value.toString(),
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+        ).animate()
+          .fadeIn(duration: 500.ms, delay: Duration(milliseconds: 1000 + (index * 100)))
+          .slideY(begin: 0.5, end: 0, duration: 500.ms, delay: Duration(milliseconds: 1000 + (index * 100))),
+      );
+    });
+  }
+
   List<BarChartGroupData> _getBarGroups(SourceStats stats) {
     return [
       _makeGroupData(0, stats.facebook.toDouble(), Colors.blue),
@@ -398,7 +713,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     );
   }
 
-  Widget _buildRecentLeadsSection(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
+  Widget _buildRecentActivitySection(BuildContext context, AppLocalizations l10n, WidgetRef ref) {
     final leadState = ref.watch(leadProvider);
     final recentLeads = leadState.leads.take(5).toList();
 
@@ -409,7 +724,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              l10n.recentLeads ?? 'Recent Leads',
+              l10n.recentActivity ?? 'Recent Activity',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -454,10 +769,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               child: LeadListItem(
                 lead: lead,
                 showStatus: true,
-                onReturn: () {
-                  ref.read(leadProvider.notifier).getStatistics();
-                  ref.read(leadProvider.notifier).getLeads();
-                },
               ).animate(delay: Duration(milliseconds: index * 100))
                 .fadeIn(duration: 500.ms)
                 .slideX(begin: -0.2, end: 0, duration: 500.ms, curve: Curves.easeOut),

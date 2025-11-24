@@ -25,6 +25,9 @@ cleanup() {
         kill $BACKEND_PID 2>/dev/null
     fi
     
+    echo "Removing ADB reverse..."
+    adb reverse --remove tcp:3000 > /dev/null 2>&1
+    
     echo "Stopping Database..."
     cd "$SCRIPT_DIR/backend"
     if docker compose stop > /dev/null 2>&1; then
@@ -95,7 +98,18 @@ if [[ "$1" == "--web" ]]; then
     TARGET="web"
 fi
 
-# 3. Start Mobile/Web App
+# 3. Setup ADB reverse for localhost access
+echo -e "\n${BLUE}🔧 Setting up network access...${NC}"
+# This allows Android devices to access localhost:3000 on the host machine
+# For emulators, this also works (they support localhost via 10.0.2.2 internally)
+adb reverse tcp:3000 tcp:3000 > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}✅ ADB reverse set up successfully (localhost:3000 → device)${NC}"
+else
+    echo -e "${YELLOW}⚠️  Could not set up adb reverse. If using emulator, update constants.dart to use 10.0.2.2${NC}"
+fi
+
+# 4. Start Mobile/Web App
 echo -e "\n${BLUE}📱 Starting App ($TARGET)...${NC}"
 cd "$SCRIPT_DIR/mobile"
 
@@ -104,7 +118,8 @@ if [[ "$TARGET" == "web" ]]; then
     flutter run -d chrome
 else
     # Check for devices
-    if ! flutter devices | grep -q "android"; then
+    FLUTTER_DEVICES=$(flutter devices)
+    if [[ "$FLUTTER_DEVICES" != *"android"* ]]; then
         echo -e "${YELLOW}🤖 No Android device found. Launching emulator...${NC}"
         
         # Get the first available emulator
@@ -119,6 +134,11 @@ else
             # Wait a bit for it to start
             echo "Waiting for emulator to initialize..."
             sleep 15
+            
+            # Set up adb reverse again after emulator starts
+            echo "Setting up network for emulator..."
+            sleep 2
+            adb reverse tcp:3000 tcp:3000 > /dev/null 2>&1
         fi
     fi
 

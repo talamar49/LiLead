@@ -139,7 +139,11 @@ class LeadNotifier extends StateNotifier<LeadState> {
     try {
       await _leadService.updateLead(
         id,
+        name: data['name'] as String?,
+        phone: data['phone'] as String?,
+        email: data['email'] as String?,
         status: data['status'] != null ? LeadStatus.values.firstWhere((e) => e.toString().split('.').last == data['status']) : null,
+        source: data['source'] != null ? LeadSource.values.firstWhere((e) => e.toString().split('.').last == data['source']) : null,
       );
       // Refresh leads if needed, or update locally
       // For now, let's just return true and let UI refresh

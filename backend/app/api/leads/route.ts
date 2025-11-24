@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
                     take: 5,
                 },
             },
-            orderBy: { createdAt: 'desc' },
+            orderBy: { updatedAt: 'desc' },
         })
 
         return successResponse(leads)

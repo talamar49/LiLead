@@ -4,10 +4,13 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import '../../l10n/app_localizations.dart';
 import '../../core/models/lead.dart';
 import '../../core/models/note.dart';
 import '../../core/utils/action_launcher.dart';
+import '../../core/services/notification_service.dart';
+import '../../core/services/battery_optimization_helper.dart';
 import '../../providers/providers.dart';
 import '../../providers/lead_provider.dart';
 import '../../widgets/note_item.dart';
@@ -36,6 +39,34 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
     _fetchNotes();
   }
 
+  String _getLocalizedMonth(int month, AppLocalizations l10n) {
+    switch (month) {
+      case 1: return l10n.monthJan;
+      case 2: return l10n.monthFeb;
+      case 3: return l10n.monthMar;
+      case 4: return l10n.monthApr;
+      case 5: return l10n.monthMay;
+      case 6: return l10n.monthJun;
+      case 7: return l10n.monthJul;
+      case 8: return l10n.monthAug;
+      case 9: return l10n.monthSep;
+      case 10: return l10n.monthOct;
+      case 11: return l10n.monthNov;
+      case 12: return l10n.monthDec;
+      default: return '';
+    }
+  }
+
+  String _formatDateWithLocalizedMonth(DateTime date, AppLocalizations l10n, {bool includeYear = false}) {
+    final month = _getLocalizedMonth(date.month, l10n);
+    final day = date.day;
+    final time = DateFormat('HH:mm').format(date);
+    if (includeYear) {
+      return '$month $day, ${date.year} $time';
+    }
+    return '$month $day, $time';
+  }
+
   Future<void> _fetchNotes() async {
     setState(() => _isNotesLoading = true);
     await ref.read(leadProvider.notifier).getNotes(_lead.id);
@@ -45,6 +76,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
   Future<void> _addNote() async {
     if (_noteController.text.trim().isEmpty) return;
 
+    final l10n = AppLocalizations.of(context)!;
     final content = _noteController.text.trim();
     final reminderAt = _selectedReminderDateTime;
     _noteController.clear();
@@ -56,23 +88,149 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
       content,
       reminderAt: reminderAt,
     );
+    
     if (success) {
+      // Schedule local notification if reminder is set
+      if (reminderAt != null) {
+        final notificationService = NotificationService();
+        
+        // Verify time is in future
+        if (reminderAt.isBefore(DateTime.now())) {
+          if (mounted) {
+            _showFloatingSnackBar(
+              l10n.reminderInPast,
+              Colors.orange,
+            );
+          }
+        } else {
+          final scheduled = await notificationService.scheduleNotification(
+            id: DateTime.now().millisecondsSinceEpoch ~/ 1000, // Unique ID
+            title: '${l10n.reminder}: ${_lead.name}',
+            body: content,
+            scheduledDateTime: reminderAt,
+            payload: 'lead_${_lead.id}',
+          );
+          
+          if (mounted) {
+            if (scheduled) {
+              final timeUntil = reminderAt.difference(DateTime.now());
+              final minutesUntil = timeUntil.inMinutes;
+              _showFloatingSnackBar(
+                l10n.reminderSetFor(minutesUntil),
+                Colors.green,
+              );
+            } else {
+              _showFloatingSnackBar(
+                l10n.reminderFailed,
+                Colors.red,
+              );
+            }
+          }
+        }
+      } else {
+        // Just show simple note added message
+        if (mounted) {
+          _showFloatingSnackBar(
+            l10n.noteAdded,
+            Colors.green,
+          );
+        }
+      }
+      
       // Notes are refreshed automatically by addNote in LeadNotifier
       if (mounted) {
         setState(() {}); // Refresh to clear reminder button state
       }
     } else {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Failed to add note')),
+        _showFloatingSnackBar(
+          l10n.noteAddFailed,
+          Colors.red,
         );
       }
     }
   }
 
+  void _showFloatingSnackBar(String message, Color backgroundColor) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: backgroundColor,
+        duration: const Duration(milliseconds: 1500),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickReminderDateTime() async {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
+    
+    // Request notification permissions when user tries to set first reminder
+    // This will automatically request POST_NOTIFICATIONS (shows dialog)
+    // and SCHEDULE_EXACT_ALARM (opens settings page) if needed
+    final notificationService = NotificationService();
+    final hasPermission = await notificationService.requestPermissions();
+    
+    if (!hasPermission) {
+      if (!mounted) return;
+      // Show message only if permissions are still denied
+      _showFloatingSnackBar(
+        l10n.notificationPermissionDenied,
+        Colors.red,
+      );
+      return;
+    }
+    
+    // Check battery optimization (critical for Nothing Phone and similar devices)
+    if (!mounted) return;
+    final isBatteryOptDisabled = await BatteryOptimizationHelper.isBatteryOptimizationDisabled();
+    if (!isBatteryOptDisabled) {
+      if (!mounted) return;
+      // Show warning about battery optimization
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.warning_amber, color: Colors.orange),
+              const SizedBox(width: 8),
+              Expanded(child: Text(l10n.batteryOptimizationTitle)),
+            ],
+          ),
+          content: Text(l10n.batteryOptimizationMessage),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(l10n.skip),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await BatteryOptimizationHelper.requestDisableBatteryOptimization();
+                // Wait a moment then continue with date picker
+                await Future.delayed(const Duration(milliseconds: 500));
+              },
+              child: Text(l10n.fixNow),
+            ),
+          ],
+        ),
+      );
+      
+      if (!mounted) return;
+    }
     
     // Pick date
     final selectedDate = await showDatePicker(
@@ -105,13 +263,16 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
   }
 
   Future<void> _updateStatus(LeadStatus newStatus) async {
+    final originalStatus = widget.lead.status; // Store original status before update
     final success = await ref.read(leadProvider.notifier).updateLead(_lead.id, {'status': newStatus.toString().split('.').last});
     if (success) {
       setState(() {
         _lead = _lead.copyWith(status: newStatus);
       });
-      // Refresh all lead lists so the lead moves to the correct tab
-      ref.read(leadProvider.notifier).getLeads();
+      // Refresh the original status list so the lead is removed from that view
+      ref.read(leadProvider.notifier).getLeads(status: originalStatus);
+      // Refresh statistics to update dashboard charts
+      ref.read(leadProvider.notifier).getStatistics();
     }
   }
 
@@ -127,77 +288,80 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
           builder: (context, setState) {
             return AlertDialog(
               title: Text('קבע אירוע'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextField(
-                      controller: titleController,
-                      decoration: InputDecoration(
-                        labelText: 'כותרת',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.9,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      TextField(
+                        controller: titleController,
+                        decoration: InputDecoration(
+                          labelText: 'כותרת',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: descriptionController,
-                      decoration: InputDecoration(
-                        labelText: 'תיאור',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'תיאור',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                         ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16),
-                    InkWell(
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: selectedDateTime,
-                          firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
-                        );
-                        if (date != null) {
-                          final time = await showTimePicker(
+                      const SizedBox(height: 16),
+                      InkWell(
+                        onTap: () async {
+                          final date = await showDatePicker(
                             context: context,
-                            initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                            initialDate: selectedDateTime,
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
                           );
-                          if (time != null) {
-                            setState(() {
-                              selectedDateTime = DateTime(
-                                date.year,
-                                date.month,
-                                date.day,
-                                time.hour,
-                                time.minute,
-                              );
-                            });
+                          if (date != null) {
+                            final time = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(selectedDateTime),
+                            );
+                            if (time != null) {
+                              setState(() {
+                                selectedDateTime = DateTime(
+                                  date.year,
+                                  date.month,
+                                  date.day,
+                                  time.hour,
+                                  time.minute,
+                                );
+                              });
+                            }
                           }
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.calendar_today),
-                            const SizedBox(width: 12),
-                            Text(
-                              DateFormat('MMM d, yyyy HH:mm').format(selectedDateTime),
-                              style: const TextStyle(fontSize: 16),
-                            ),
-                          ],
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            border: Border.all(color: Colors.grey),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.calendar_today),
+                              const SizedBox(width: 12),
+                              Text(
+                                _formatDateWithLocalizedMonth(selectedDateTime, l10n, includeYear: true),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               actions: [
@@ -242,6 +406,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    print('DEBUG: Source: ${_lead.source}, Localized: ${_getLocalizedSourceLabel(_lead.source, l10n)}');
     final notes = ref.watch(leadProvider).currentLeadNotes;
     final theme = Theme.of(context);
     final nextReminder = _getNextReminder(notes);
@@ -259,8 +424,8 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                 backgroundColor: Colors.transparent,
                 builder: (context) => EditLeadScreen(lead: _lead),
               ).then((_) {
-                // Refresh the lead data after editing
-                ref.read(leadProvider.notifier).getLeads(status: _lead.status);
+                // Note: We don't refresh the lead list here to avoid affecting the previous screen's filter
+                // The list screens will refresh when the user navigates back to them
               });
             },
           ),
@@ -286,13 +451,19 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                             shape: BoxShape.circle,
                           ),
                           alignment: Alignment.center,
-                          child: Text(
-                            _getStatusEmoji(_lead.status),
-                            style: const TextStyle(fontSize: 48),
-                          ),
-                        ).animate()
-                          .scale(duration: 400.ms, curve: Curves.easeOutBack)
-                          .fadeIn(duration: 300.ms),
+                          child: Hero(
+                            tag: 'lead_status_${_lead.id}',
+                            child: Material(
+                              color: Colors.transparent,
+                              child: Text(
+                                _getStatusEmoji(_lead.status),
+                                style: const TextStyle(fontSize: 48),
+                              ),
+                            ),
+                          ).animate()
+                            .scale(duration: 400.ms, curve: Curves.easeOutBack)
+                            .fadeIn(duration: 300.ms),
+                        ),
                         const SizedBox(height: 16),
                         Text(
                           _lead.name,
@@ -369,7 +540,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                   if (nextReminder != null) 
                     _DetailRow(
                       icon: Icons.notifications_active,
-                      value: '${l10n.reminder}: ${DateFormat('MMM d, yyyy HH:mm').format(nextReminder)}',
+                      value: '${l10n.reminder}: ${_formatDateWithLocalizedMonth(nextReminder, l10n, includeYear: true)}',
                     ),
                   
                   const SizedBox(height: 24),
@@ -426,7 +597,11 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                       ),
                     )
                   else
-                    ...notes.map((note) => NoteItem(note: note, leadId: _lead.id)),
+                    ...notes.map((note) => NoteItem(
+                      note: note, 
+                      leadId: _lead.id,
+                      leadName: _lead.name,
+                    )),
                 ],
               ),
             ),
@@ -464,7 +639,7 @@ class _LeadDetailScreenState extends ConsumerState<LeadDetailScreen> {
                           Icon(Icons.alarm, size: 16, color: theme.primaryColor),
                           const SizedBox(width: 8),
                           Text(
-                            '${l10n.reminder}: ${DateFormat('MMM d, HH:mm').format(_selectedReminderDateTime!)}',
+                            '${l10n.reminder}: ${_formatDateWithLocalizedMonth(_selectedReminderDateTime!, l10n)}',
                             style: TextStyle(
                               color: theme.primaryColor,
                               fontSize: 12,

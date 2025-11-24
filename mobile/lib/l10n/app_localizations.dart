@@ -650,6 +650,24 @@ abstract class AppLocalizations {
   /// **'Welcome back!'**
   String get welcomeBack;
 
+  /// No description provided for @editNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Note'**
+  String get editNote;
+
+  /// No description provided for @noteUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Note updated'**
+  String get noteUpdated;
+
+  /// No description provided for @noteUpdateFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to update note'**
+  String get noteUpdateFailed;
+
   /// No description provided for @pleaseEnterEmail.
   ///
   /// In en, this message translates to:
@@ -743,7 +761,7 @@ abstract class AppLocalizations {
   /// No description provided for @reminderSet.
   ///
   /// In en, this message translates to:
-  /// **'Reminder set successfully'**
+  /// **'Reminder Set'**
   String get reminderSet;
 
   /// No description provided for @reminderDeleted.
@@ -776,11 +794,185 @@ abstract class AppLocalizations {
   /// **'Recent Leads'**
   String get recentLeads;
 
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
   /// No description provided for @viewAll.
   ///
   /// In en, this message translates to:
   /// **'View All'**
   String get viewAll;
+
+  /// No description provided for @noteContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Note Content'**
+  String get noteContent;
+
+  /// No description provided for @noReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'No Reminder'**
+  String get noReminder;
+
+  /// No description provided for @clearReminder.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Reminder'**
+  String get clearReminder;
+
+  /// No description provided for @monthJan.
+  ///
+  /// In en, this message translates to:
+  /// **'Jan'**
+  String get monthJan;
+
+  /// No description provided for @monthFeb.
+  ///
+  /// In en, this message translates to:
+  /// **'Feb'**
+  String get monthFeb;
+
+  /// No description provided for @monthMar.
+  ///
+  /// In en, this message translates to:
+  /// **'Mar'**
+  String get monthMar;
+
+  /// No description provided for @monthApr.
+  ///
+  /// In en, this message translates to:
+  /// **'Apr'**
+  String get monthApr;
+
+  /// No description provided for @monthMay.
+  ///
+  /// In en, this message translates to:
+  /// **'May'**
+  String get monthMay;
+
+  /// No description provided for @monthJun.
+  ///
+  /// In en, this message translates to:
+  /// **'Jun'**
+  String get monthJun;
+
+  /// No description provided for @monthJul.
+  ///
+  /// In en, this message translates to:
+  /// **'Jul'**
+  String get monthJul;
+
+  /// No description provided for @monthAug.
+  ///
+  /// In en, this message translates to:
+  /// **'Aug'**
+  String get monthAug;
+
+  /// No description provided for @monthSep.
+  ///
+  /// In en, this message translates to:
+  /// **'Sep'**
+  String get monthSep;
+
+  /// No description provided for @monthOct.
+  ///
+  /// In en, this message translates to:
+  /// **'Oct'**
+  String get monthOct;
+
+  /// No description provided for @monthNov.
+  ///
+  /// In en, this message translates to:
+  /// **'Nov'**
+  String get monthNov;
+
+  /// No description provided for @monthDec.
+  ///
+  /// In en, this message translates to:
+  /// **'Dec'**
+  String get monthDec;
+
+  /// No description provided for @notificationPermissionDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Notification permission denied. Please enable it in settings to receive reminders.'**
+  String get notificationPermissionDenied;
+
+  /// No description provided for @deleteLeadConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to delete this lead?'**
+  String get deleteLeadConfirm;
+
+  /// No description provided for @leadDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Lead deleted'**
+  String get leadDeleted;
+
+  /// No description provided for @leadDeleteFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to delete lead'**
+  String get leadDeleteFailed;
+
+  /// No description provided for @reminderSetFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminder set for {minutes} minutes from now'**
+  String reminderSetFor(Object minutes);
+
+  /// No description provided for @reminderFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to set reminder'**
+  String get reminderFailed;
+
+  /// No description provided for @reminderInPast.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot set reminder in the past'**
+  String get reminderInPast;
+
+  /// No description provided for @noteAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Note Added'**
+  String get noteAdded;
+
+  /// No description provided for @noteAddFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to add note'**
+  String get noteAddFailed;
+
+  /// No description provided for @batteryOptimizationTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery Optimization Active'**
+  String get batteryOptimizationTitle;
+
+  /// No description provided for @batteryOptimizationMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your device is optimizing battery for this app. This may prevent notifications from firing when the app is in the background.\n\nWe strongly recommend disabling battery optimization for reliable notifications.\n\nWould you like to fix this now?'**
+  String get batteryOptimizationMessage;
+
+  /// No description provided for @skip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get skip;
+
+  /// No description provided for @fixNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Fix Now'**
+  String get fixNow;
 }
 
 class _AppLocalizationsDelegate

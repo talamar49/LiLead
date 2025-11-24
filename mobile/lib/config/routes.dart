@@ -21,14 +21,68 @@ import '../providers/auth_provider.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final _shellNavigatorKey = GlobalKey<NavigatorState>();
 
+// Custom page transition builder for smooth animations
+CustomTransitionPage _buildPageWithTransition({
+  required Widget child,
+  required GoRouterState state,
+  bool isSlideUp = false,
+}) {
+  return CustomTransitionPage(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      if (isSlideUp) {
+        // Slide up transition for modals
+        return SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 1),
+            end: Offset.zero,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          )),
+          child: child,
+        );
+      }
+      
+      // Fade + Scale transition for regular pages
+      return FadeTransition(
+        opacity: CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeInOut,
+        ),
+        child: ScaleTransition(
+          scale: Tween<double>(
+            begin: 0.95,
+            end: 1.0,
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          )),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 final routerProvider = Provider<GoRouter>((ref) {
-  final authState = ref.watch(authProvider);
+  // Use a ValueNotifier to trigger router refreshes without rebuilding the router itself
+  final authNotifier = ValueNotifier(ref.read(authProvider));
+  
+  // Update the notifier when auth state changes
+  ref.listen(authProvider, (_, next) {
+    authNotifier.value = next;
+  });
 
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: '/',
     debugLogDiagnostics: true,
+    refreshListenable: authNotifier,
     redirect: (context, state) {
+      // Use ref.read to avoid watching and rebuilding
+      final authState = ref.read(authProvider);
       final isLoggedIn = authState.isAuthenticated;
       final isAuthRoute = state.uri.path == '/login' || state.uri.path == '/register';
 
@@ -45,11 +99,17 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/login',
-        builder: (context, state) => const LoginScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          child: const LoginScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/register',
-        builder: (context, state) => const RegisterScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          child: const RegisterScreen(),
+          state: state,
+        ),
       ),
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -59,52 +119,80 @@ final routerProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/',
-            builder: (context, state) => const DashboardScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const DashboardScreen(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/new-leads',
-            builder: (context, state) => const NewLeadsScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const NewLeadsScreen(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/follow-up',
-            builder: (context, state) => const FollowUpScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const FollowUpScreen(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/all-leads',
-            builder: (context, state) => const LeadsListScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const LeadsListScreen(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/closed',
-            builder: (context, state) => const ClosedLeadsScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const ClosedLeadsScreen(),
+              state: state,
+            ),
           ),
           GoRoute(
             path: '/not-relevant',
-            builder: (context, state) => const NotRelevantLeadsScreen(),
+            pageBuilder: (context, state) => _buildPageWithTransition(
+              child: const NotRelevantLeadsScreen(),
+              state: state,
+            ),
           ),
         ],
       ),
       GoRoute(
         path: '/leads/add',
-        parentNavigatorKey: _rootNavigatorKey, // Full screen modal
-        pageBuilder: (context, state) => const MaterialPage(
-          fullscreenDialog: true,
-          child: AddLeadScreen(),
+        parentNavigatorKey: _rootNavigatorKey,
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          child: const AddLeadScreen(),
+          state: state,
+          isSlideUp: true,
         ),
       ),
       GoRoute(
         path: '/leads/:id',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final lead = state.extra as Lead;
-          return LeadDetailScreen(lead: lead);
+          return _buildPageWithTransition(
+            child: LeadDetailScreen(lead: lead),
+            state: state,
+          );
         },
       ),
       GoRoute(
         path: '/profile',
-        builder: (context, state) => const ProfileScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          child: const ProfileScreen(),
+          state: state,
+        ),
       ),
       GoRoute(
         path: '/settings',
-        builder: (context, state) => const SettingsScreen(),
+        pageBuilder: (context, state) => _buildPageWithTransition(
+          child: const SettingsScreen(),
+          state: state,
+        ),
       ),
     ],
   );

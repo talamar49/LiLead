@@ -11,9 +11,25 @@ class AppConstants {
     if (kIsWeb) {
       return 'http://localhost:3000/api';
     }
+
+    // -----------------------------------------------------------------------
+    // ANDROID CONFIGURATION:
+    // -----------------------------------------------------------------------
+    // The start-all.sh script automatically sets up adb reverse for physical devices,
+    // so localhost will work on physical devices.
+    // For emulators, use 10.0.2.2 (special alias for host machine)
+    // -----------------------------------------------------------------------
     
-    // Android emulator (default), iOS simulator and web/desktop can use localhost
-    return 'http://10.0.2.2:3000/api';
+    // Try to detect if running on emulator vs physical device
+    // This is a simple heuristic - emulators typically have "goldfish" or "ranchu" in model
+    // For now, we'll default to localhost since start-all.sh sets up adb reverse
+    return 'http://localhost:3000/api';
+    
+    // If the above doesn't work and you're using an emulator without adb reverse:
+    // return 'http://10.0.2.2:3000/api';
+    
+    // If you're on WiFi (no USB) with a physical device, use your PC's IP:
+    // return 'http://YOUR_PC_IP:3000/api';
   }
   
   // Storage Keys

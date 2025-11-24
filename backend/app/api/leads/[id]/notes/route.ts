@@ -61,6 +61,12 @@ export async function POST(
             },
         })
 
+        // Update the lead's updatedAt timestamp to track activity
+        await prisma.lead.update({
+            where: { id: leadId },
+            data: { updatedAt: new Date() },
+        })
+
         return successResponse(note, 'Note added successfully')
     } catch (error) {
         console.error('Create note error:', error)

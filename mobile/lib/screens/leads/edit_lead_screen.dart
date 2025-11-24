@@ -106,8 +106,9 @@ class _EditLeadScreenState extends ConsumerState<EditLeadScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.success)),
       );
-      // Refresh the lead list
+      // Refresh the lead list and statistics
       ref.read(leadProvider.notifier).getLeads(status: _selectedStatus);
+      ref.read(leadProvider.notifier).getStatistics();
     } else if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(AppLocalizations.of(context)!.error)),

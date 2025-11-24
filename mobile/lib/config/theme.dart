@@ -27,7 +27,7 @@ class AppTheme {
       surface: Colors.white,
       onSurface: Colors.black,
     ),
-    scaffoldBackgroundColor: const Color(0xFFF2F2F7), // iOS Light Gray Background
+    scaffoldBackgroundColor: Colors.white, // White Background
     
     // Typography
     textTheme: GoogleFonts.interTextTheme(
